@@ -449,7 +449,7 @@ function submitBooking(){
   // Auto-insert into Google Calendar
   var calEventTitle = 'Booking: ' + b.room.name;
   var calEventDetails = 'Person in Charge: ' + b.name + (b.note ? '\nNotes: ' + b.note : '');
-  addToGoogleCalendar(startISO, endISO, calEventTitle, calEventDetails);
+  addToGoogleCalendar(b.id, startISO, endISO, calEventTitle, calEventDetails);
 
   // Send to SheetDB → Google Sheets → Google Calendar
   fetch('https://sheetdb.io/api/v1/7rbi5f8z4cn32', {
@@ -500,9 +500,11 @@ function renderBookings(){
 }
 
 function cancelBooking(id){
+  var b = st.bookings.find(function(x){ return x.id===id; });
+  if(b && b.calEventId){ deleteCalendarEvent(b.calEventId); }
   st.bookings = st.bookings.filter(function(b){ return b.id!==id; });
   save(); updCount(); renderBookings();
-  showToast('Booking cancelled');
+  if(!(b && b.calEventId)) showToast('Booking cancelled');
 }
 
 function updCount(){
@@ -547,16 +549,21 @@ function initGoogleAuth(){
         insertCalendarEvent(gcPendingEvent);
         gcPendingEvent = null;
       }
+      if(gcPendingDelete){
+        deleteCalendarEvent(gcPendingDelete);
+        gcPendingDelete = null;
+      }
     }
   });
 }
 
-function addToGoogleCalendar(startISO, endISO, title, description){
+function addToGoogleCalendar(bookingId, startISO, endISO, title, description){
   var event = {
     summary: title,
     description: description,
     start: { dateTime: startISO, timeZone: 'Asia/Kuala_Lumpur' },
-    end:   { dateTime: endISO,   timeZone: 'Asia/Kuala_Lumpur' }
+    end:   { dateTime: endISO,   timeZone: 'Asia/Kuala_Lumpur' },
+    _bookingId: bookingId
   };
   if(gcAccessToken){
     insertCalendarEvent(event);
@@ -567,21 +574,26 @@ function addToGoogleCalendar(startISO, endISO, title, description){
 }
 
 function insertCalendarEvent(event){
+  var sendEvent = Object.assign({}, event);
+  delete sendEvent._bookingId;
   fetch('https://www.googleapis.com/calendar/v3/calendars/primary/events', {
     method: 'POST',
     headers: {
       'Authorization': 'Bearer ' + gcAccessToken,
       'Content-Type': 'application/json'
     },
-    body: JSON.stringify(event)
+    body: JSON.stringify(sendEvent)
   })
   .then(function(r){ return r.json(); })
   .then(function(data){
     if(data.id){
       showToast('Added to Google Calendar ✓');
+      if(event._bookingId){
+        var b = st.bookings.find(function(x){ return x.id === event._bookingId; });
+        if(b){ b.calEventId = data.id; save(); }
+      }
     } else {
       console.warn('GCal insert failed:', data);
-      // Token may have expired — re-auth silently
       if(data.error && data.error.code === 401){
         gcAccessToken = null;
         gcPendingEvent = event;
@@ -590,6 +602,30 @@ function insertCalendarEvent(event){
     }
   })
   .catch(function(err){ console.warn('GCal fetch error:', err); });
+}
+
+var gcPendingDelete = null;
+
+function deleteCalendarEvent(calEventId){
+  if(!calEventId) return;
+  if(!gcAccessToken){
+    gcPendingDelete = calEventId;
+    gcTokenClient.requestAccessToken({ prompt: '' });
+    return;
+  }
+  fetch('https://www.googleapis.com/calendar/v3/calendars/primary/events/' + calEventId, {
+    method: 'DELETE',
+    headers: { 'Authorization': 'Bearer ' + gcAccessToken }
+  })
+  .then(function(r){
+    if(r.status === 204){ showToast('Removed from Google Calendar ✓'); }
+    else if(r.status === 401){
+      gcAccessToken = null;
+      gcPendingDelete = calEventId;
+      gcTokenClient.requestAccessToken({ prompt: '' });
+    }
+  })
+  .catch(function(err){ console.warn('GCal delete error:', err); });
 }
 
 initGoogleAuth();
