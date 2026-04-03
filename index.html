@@ -449,7 +449,7 @@ function submitBooking(){
   // Auto-insert into Google Calendar
   var calEventTitle = 'Booking: ' + b.room.name;
   var calEventDetails = 'Person in Charge: ' + b.name + (b.note ? '\nNotes: ' + b.note : '');
-  addToGoogleCalendar(b.id, startISO, endISO, calEventTitle, calEventDetails);
+ // addToGoogleCalendar(b.id, startISO, endISO, calEventTitle, calEventDetails);
 
   // Send to SheetDB → Google Sheets → Google Calendar
   fetch('https://sheetdb.io/api/v1/7rbi5f8z4cn32', {
