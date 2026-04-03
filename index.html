@@ -446,17 +446,19 @@ function submitBooking(){
   var startISO = year+'-'+month+'-'+day+'T'+startHour+':00:00';
   var endISO   = year+'-'+month+'-'+day+'T'+endHour+':00:00';
 
-  // Send to Google Apps Script → Google Calendar via GET
-  var scriptURL = 'https://script.google.com/macros/s/AKfycbwBROIfBhaZ33f9tRHswZFTZwphWGafEJjpZSnLDYxppdJNS_b6KH5Oq9xJyJqHjGOuRQ/exec'
-    + '?room_name=' + encodeURIComponent(b.room.name)
-    + '&date=' + encodeURIComponent(b.date)
-    + '&time=' + encodeURIComponent(b.time)
-    + '&start_datetime=' + encodeURIComponent(startISO)
-    + '&end_datetime=' + encodeURIComponent(endISO)
-    + '&person_name=' + encodeURIComponent(b.name)
-    + '&notes=' + encodeURIComponent(b.note || '—');
-  var img = new Image();
-  img.src = scriptURL;
+  // Send to SheetDB → Google Sheets → Google Calendar
+  fetch('https://sheetdb.io/api/v1/7rbi5f8z4cn32', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ data: [{
+      room_name: b.room.name,
+      date: b.date,
+      time: b.time,
+      start_datetime: startISO,
+      end_datetime: endISO,
+      person_name: b.name
+    }]})
+  }).catch(function(err){ console.warn('SheetDB failed:', err); });
 
   // Send email notification
   emailjs.send('service_zl1atcv', 'template_9hv3sye', {
