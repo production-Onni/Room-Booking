@@ -446,21 +446,17 @@ function submitBooking(){
   var startISO = year+'-'+month+'-'+day+'T'+startHour+':00:00';
   var endISO   = year+'-'+month+'-'+day+'T'+endHour+':00:00';
 
-  // Send to Google Apps Script → Google Calendar
-  fetch('https://script.google.com/macros/s/AKfycbwZyHdTsO7LXmO3fnpT_PMZPpLtjxwsC529fsEgIQNgXvhG2IdnZYxxGzfR8ykTtHXm/exec', {
-    method: 'POST',
-    mode: 'no-cors',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      room_name: b.room.name,
-      date: b.date,
-      time: b.time,
-      start_datetime: startISO,
-      end_datetime: endISO,
-      person_name: b.name,
-      notes: b.note || '—'
-    })
-  }).catch(function(err){ console.warn('Calendar failed:', err); });
+  // Send to Google Apps Script → Google Calendar via GET
+  var scriptURL = 'https://script.google.com/macros/s/AKfycbwUBDZ_oAI8cJbKI-bIKp1jPqU5mjkG2aqHEq6F3BJd9goxpv_4X8f0VyiIxSx-pkP4/exec'
+    + '?room_name=' + encodeURIComponent(b.room.name)
+    + '&date=' + encodeURIComponent(b.date)
+    + '&time=' + encodeURIComponent(b.time)
+    + '&start_datetime=' + encodeURIComponent(startISO)
+    + '&end_datetime=' + encodeURIComponent(endISO)
+    + '&person_name=' + encodeURIComponent(b.name)
+    + '&notes=' + encodeURIComponent(b.note || '—');
+  var img = new Image();
+  img.src = scriptURL;
 
   // Send email notification
   emailjs.send('service_zl1atcv', 'template_9hv3sye', {
