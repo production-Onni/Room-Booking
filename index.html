@@ -466,6 +466,10 @@ function submitBooking(){
   }).catch(function(err){ console.warn('SheetDB failed:', err); });
 
   // Send email notification
+  var dateISO = bookingDate.toISOString().replace(/-/g,'').replace(/T.*/,'');
+  var calStart = dateISO + 'T' + bookingTime.replace(':','') + '00';
+  var calEnd = dateISO + 'T' + (endHourNum < 10 ? '0'+endHourNum : endHourNum) + '0000';
+  var calLink = 'https://calendar.google.com/calendar/render?action=TEMPLATE&text=' + encodeURIComponent('Booking: ' + b.room.name) + '&dates=' + calStart + '/' + calEnd + '&details=' + encodeURIComponent('Person in Charge: ' + b.name + (b.note ? '\nNotes: ' + b.note : ''));
   emailjs.send('service_zl1atcv', 'template_9hv3sye', {
     room_name: b.room.name,
     date: b.date,
