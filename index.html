@@ -447,7 +447,7 @@ function submitBooking(){
   var endISO   = year+'-'+month+'-'+day+'T'+endHour+':00:00';
 
   // Send to Google Apps Script → Google Calendar via GET
-  var scriptURL = 'https://script.google.com/macros/s/AKfycbwUBDZ_oAI8cJbKI-bIKp1jPqU5mjkG2aqHEq6F3BJd9goxpv_4X8f0VyiIxSx-pkP4/exec'
+  var scriptURL = 'https://script.google.com/macros/s/AKfycbx4iSquNdzK01xeYFR92GS7VHQ24GhrRleBK-GrP-D-TIKzVtk-fkqsjpYXWDXmxXmB/exec'
     + '?room_name=' + encodeURIComponent(b.room.name)
     + '&date=' + encodeURIComponent(b.date)
     + '&time=' + encodeURIComponent(b.time)
