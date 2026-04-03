@@ -7,6 +7,7 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <script>emailjs.init('_p8ZneScxudlAR7xC');</script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 :root {
@@ -422,6 +423,11 @@ function submitBooking(){
   if(!name){ showToast('Please enter the person in charge'); return; }
   var dateStr = st.date.toLocaleDateString('en-GB',{month:'long',day:'numeric'});
   var b = {id:Date.now(), room:st.room, date:dateStr, time:st.time, name:name, note:note, status:'pending'};
+
+  // Save date/time info before clearing state
+  var bookingDate = st.date;
+  var bookingTime = st.time;
+
   st.bookings.unshift(b);
   document.getElementById('inp-name').value = '';
   document.getElementById('inp-note').value = '';
@@ -429,22 +435,21 @@ function submitBooking(){
   save(); updCount(); renderBookings();
   showToast('Booking confirmed! Awaiting approval ✓');
 
-  // Build Google Calendar link
-  var calStart = st.date.toISOString().replace(/-/g,'').replace(/T.*/,'') + 'T' + b.time.replace(':','') + '00';
-  var endHour = parseInt(b.time.split(':')[0]) + 2;
-  var calEnd = st.date.toISOString().replace(/-/g,'').replace(/T.*/,'') + 'T' + (endHour < 10 ? '0'+endHour : endHour) + '0000';
-  var calTitle = encodeURIComponent('Booking: ' + b.room.name);
-  var calDetails = encodeURIComponent('Person in Charge: ' + b.name + (b.note ? '\nNotes: ' + b.note : ''));
-  var calLink = 'https://calendar.google.com/calendar/render?action=TEMPLATE&text=' + calTitle + '&dates=' + calStart + '/' + calEnd + '&details=' + calDetails;
-
-  // Build ISO datetime strings for Make.com
-  var year = st.date.getFullYear();
-  var month = String(st.date.getMonth()+1).padStart(2,'0');
-  var day = String(st.date.getDate()).padStart(2,'0');
-  var startHour = String(parseInt(b.time.split(':')[0])).padStart(2,'0');
-  var endHour = String(parseInt(b.time.split(':')[0])+2).padStart(2,'0');
+  // Build ISO datetime parts (single endHour variable)
+  var year = bookingDate.getFullYear();
+  var month = String(bookingDate.getMonth()+1).padStart(2,'0');
+  var day = String(bookingDate.getDate()).padStart(2,'0');
+  var startHourNum = parseInt(bookingTime.split(':')[0]);
+  var endHourNum = startHourNum + 2;
+  var startHour = String(startHourNum).padStart(2,'0');
+  var endHour = String(endHourNum).padStart(2,'0');
   var startISO = year+'-'+month+'-'+day+'T'+startHour+':00:00';
   var endISO   = year+'-'+month+'-'+day+'T'+endHour+':00:00';
+
+  // Auto-insert into Google Calendar
+  var calEventTitle = 'Booking: ' + b.room.name;
+  var calEventDetails = 'Person in Charge: ' + b.name + (b.note ? '\nNotes: ' + b.note : '');
+  addToGoogleCalendar(startISO, endISO, calEventTitle, calEventDetails);
 
   // Send to SheetDB → Google Sheets → Google Calendar
   fetch('https://sheetdb.io/api/v1/7rbi5f8z4cn32', {
@@ -519,6 +524,76 @@ function toggleDark(){
   try{ localStorage.setItem('darkMode', isDark ? '1' : '0'); }catch(e){}
 }
 try{ if(localStorage.getItem('darkMode')==='1'){ document.body.classList.add('dark'); document.getElementById('dark-toggle').textContent='☀️'; } }catch(e){}
+
+// ── Google Calendar Integration ──────────────────────────────
+var GC_CLIENT_ID = '657566478688-drmrkdrcl8p62k23f8b5koask8r0509d.apps.googleusercontent.com';
+var GC_SCOPE = 'https://www.googleapis.com/auth/calendar.events';
+var gcAccessToken = null;
+var gcTokenClient = null;
+var gcPendingEvent = null;
+
+function initGoogleAuth(){
+  if(typeof google === 'undefined' || !google.accounts) {
+    setTimeout(initGoogleAuth, 500);
+    return;
+  }
+  gcTokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: GC_CLIENT_ID,
+    scope: GC_SCOPE,
+    callback: function(resp){
+      if(resp.error){ console.warn('GCal auth error:', resp); return; }
+      gcAccessToken = resp.access_token;
+      if(gcPendingEvent){
+        insertCalendarEvent(gcPendingEvent);
+        gcPendingEvent = null;
+      }
+    }
+  });
+}
+
+function addToGoogleCalendar(startISO, endISO, title, description){
+  var event = {
+    summary: title,
+    description: description,
+    start: { dateTime: startISO, timeZone: 'Asia/Kuala_Lumpur' },
+    end:   { dateTime: endISO,   timeZone: 'Asia/Kuala_Lumpur' }
+  };
+  if(gcAccessToken){
+    insertCalendarEvent(event);
+  } else {
+    gcPendingEvent = event;
+    gcTokenClient.requestAccessToken({ prompt: 'consent' });
+  }
+}
+
+function insertCalendarEvent(event){
+  fetch('https://www.googleapis.com/calendar/v3/calendars/primary/events', {
+    method: 'POST',
+    headers: {
+      'Authorization': 'Bearer ' + gcAccessToken,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(event)
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(data){
+    if(data.id){
+      showToast('Added to Google Calendar ✓');
+    } else {
+      console.warn('GCal insert failed:', data);
+      // Token may have expired — re-auth silently
+      if(data.error && data.error.code === 401){
+        gcAccessToken = null;
+        gcPendingEvent = event;
+        gcTokenClient.requestAccessToken({ prompt: '' });
+      }
+    }
+  })
+  .catch(function(err){ console.warn('GCal fetch error:', err); });
+}
+
+initGoogleAuth();
+// ─────────────────────────────────────────────────────────────
 
 renderRooms(); renderCal(); updCount(); renderBookings();
 </script>
