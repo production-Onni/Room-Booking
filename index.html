@@ -192,6 +192,119 @@ body.dark .landing-header { background: #1e1a12; box-shadow: 0 2px 12px rgba(0,0
 body.dark .landing-header-logo { color: #e8dcc8; }
 body.dark .landing-header-tag { color: #a08060; border-color: rgba(200,180,140,0.2); }
 
+
+/* ── Raya Decorations ─────────────────────────────────── */
+.raya-corner { position: fixed; pointer-events: none; z-index: 997; }
+.raya-tl { top: 0; left: 0; }
+.raya-tr { top: 0; right: 0; transform: scaleX(-1); }
+.raya-bl { bottom: 60px; left: 0; transform: scaleY(-1); }
+.raya-br { bottom: 60px; right: 0; transform: scale(-1,-1); }
+
+.raya-lamp { position: fixed; pointer-events: none; z-index: 997; }
+.raya-lamp-l { top: 60px; left: 18px; }
+.raya-lamp-r { top: 60px; right: 18px; }
+
+/* Hide corners on landing page cleanly */
+body.on-landing .raya-corner { opacity: 0.35; }
+body.on-landing .raya-lamp   { opacity: 0; }
+
+/* Raya shimmer on ketupat */
+@keyframes sway { 0%,100%{transform:rotate(-4deg)}50%{transform:rotate(4deg)} }
+@keyframes sway-r { 0%,100%{transform:scaleX(-1) rotate(-4deg)}50%{transform:scaleX(-1) rotate(4deg)} }
+.lamp-body { transform-origin: top center; animation: sway 3s ease-in-out infinite; }
+.lamp-body-r { transform-origin: top center; animation: sway-r 3s ease-in-out infinite 0.5s; }
+
+
+
+
+/* ── Leave Form ─────────────────────────────────────────────── */
+:root {
+  --blue1: #E8F4FD; --blue2: #B8D9F5; --blue3: #6BAED6; --blue4: #2E86C1; --blue5: #1A5276;
+}
+body.dark { --blue1: #0d1e2e; --blue2: #122840; --blue3: #1d5a8a; --blue4: #4A9FD4; --blue5: #89c4e8; }
+
+.lf-page { background: var(--blue1); min-height: 100%; padding: 0; display: flex; flex-direction: column; }
+
+.lf-hero { background: linear-gradient(135deg, var(--blue4) 0%, var(--blue3) 100%); padding: 32px 28px 44px; position: relative; overflow: hidden; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.lf-hero::before { content: ''; position: absolute; top: -40px; right: -40px; width: 180px; height: 180px; border-radius: 50%; background: rgba(255,255,255,0.08); }
+.lf-hero::after { content: ''; position: absolute; bottom: -60px; left: -20px; width: 200px; height: 200px; border-radius: 50%; background: rgba(255,255,255,0.05); }
+.lf-hero-label { font-size: 11px; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.7); margin-bottom: 10px; }
+.lf-hero-title { font-family: 'DM Serif Display', serif; font-size: 26px; color: #fff; margin-bottom: 8px; line-height: 1.2; }
+.lf-hero-sub { font-size: 13px; color: rgba(255,255,255,0.75); line-height: 1.5; max-width: 360px; }
+
+.lf-body { padding: 28px 20px 60px; max-width: 560px; width: 100%; margin: 0 auto; flex: 1; }
+
+/* Steps pill nav */
+.lf-steps { display: flex; gap: 6px; margin-bottom: 28px; }
+.lf-step-pill { flex: 1; height: 4px; border-radius: 4px; background: var(--blue2); transition: background 0.3s; }
+.lf-step-pill.active { background: var(--blue4); }
+.lf-step-pill.done   { background: var(--blue3); }
+
+/* Section cards */
+.lf-card { background: #fff; border-radius: 18px; padding: 22px 20px; margin-bottom: 14px; box-shadow: 0 2px 12px rgba(46,134,193,0.08); }
+body.dark .lf-card { background: #112030; box-shadow: 0 2px 12px rgba(0,0,0,0.2); }
+
+.lf-card-title { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.1em; color: var(--blue4); margin-bottom: 16px; }
+
+/* Input styles */
+.lf-field { margin-bottom: 18px; }
+.lf-field:last-child { margin-bottom: 0; }
+.lf-fl { font-size: 12px; font-weight: 500; color: var(--text-m); margin-bottom: 7px; display: block; }
+.lf-fl .req { color: #D85A30; margin-left: 2px; }
+.lf-fi { width: 100%; background: var(--blue1); border: 1.5px solid var(--blue2); border-radius: 10px; padding: 11px 14px; font-size: 14px; font-family: 'DM Sans', sans-serif; color: var(--text); outline: none; transition: border-color 0.15s, box-shadow 0.15s; }
+.lf-fi:focus { border-color: var(--blue4); box-shadow: 0 0 0 3px rgba(46,134,193,0.12); }
+.lf-fi::placeholder { color: var(--text-f); }
+body.dark .lf-fi { background: #0d1e2e; border-color: var(--blue3); }
+
+/* Radio chips */
+.lf-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.lf-chip { padding: 8px 16px; border-radius: 30px; border: 1.5px solid var(--blue2); font-size: 13px; color: var(--text-m); cursor: pointer; transition: all 0.15s; background: var(--blue1); user-select: none; }
+.lf-chip:hover { border-color: var(--blue4); color: var(--blue4); background: #fff; }
+.lf-chip.selected { background: var(--blue4); border-color: var(--blue4); color: #fff; font-weight: 500; }
+body.dark .lf-chip { background: var(--blue1); }
+body.dark .lf-chip.selected { background: var(--blue4); color: #fff; }
+
+/* Leave type list */
+.lf-type-list { display: flex; flex-direction: column; gap: 6px; list-style: none; padding: 0; margin: 0; }
+.lf-type-item { padding: 12px 16px; border-radius: 12px; border: 1.5px solid var(--blue2); font-size: 13px; color: var(--text-m); cursor: pointer; transition: all 0.15s; background: var(--blue1); display: flex; align-items: center; gap: 10px; }
+.lf-type-item:hover { border-color: var(--blue4); color: var(--blue4); background: #EAF4FB; }
+.lf-type-item.selected { background: var(--blue4); border-color: var(--blue4); color: #fff; }
+.lf-type-item::before { content: ''; display: inline-block; width: 10px; height: 10px; min-width: 10px; border-radius: 50%; border: 2px solid currentColor; margin-right: 10px; flex-shrink: 0; transition: all 0.15s; vertical-align: middle; }
+.lf-type-item.selected::before { background: #fff; border-color: #fff; }
+.lf-other-wrap::before { content: ''; display: inline-block; width: 10px; height: 10px; min-width: 10px; border-radius: 50%; border: 2px solid var(--text-f); margin-right: 10px; flex-shrink: 0; transition: all 0.15s; vertical-align: middle; }
+.lf-other-wrap.selected::before { border-color: var(--blue4); background: var(--blue4); }
+
+
+
+body.dark .lf-type-item { background: var(--blue1); }
+body.dark .lf-type-item:hover { background: #122840; }
+
+/* Other input inside type */
+.lf-other-wrap { display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-radius: 12px; border: 1.5px solid var(--blue2); background: var(--blue1); transition: border-color 0.15s; }
+.lf-other-wrap.selected { border-color: var(--blue4); background: var(--blue1); }
+.lf-other-input { flex: 1; background: none; border: none; outline: none; font-size: 13px; font-family: 'DM Sans', sans-serif; color: var(--text); }
+.lf-other-input::placeholder { color: var(--text-f); }
+
+/* File upload */
+.lf-upload-zone { border: 2px dashed var(--blue2); border-radius: 14px; padding: 24px; text-align: center; cursor: pointer; transition: all 0.2s; background: var(--blue1); }
+.lf-upload-zone:hover { border-color: var(--blue4); background: #EAF4FB; }
+.lf-upload-icon { font-size: 28px; margin-bottom: 8px; opacity: 0.6; }
+.lf-upload-text { font-size: 13px; color: var(--text-m); }
+.lf-upload-text b { color: var(--blue4); }
+.lf-upload-hint { font-size: 11px; color: var(--text-f); margin-top: 4px; }
+.lf-file-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+.lf-file-chip { display: flex; align-items: center; gap: 6px; background: var(--blue2); color: var(--blue5); border-radius: 20px; padding: 4px 12px; font-size: 12px; }
+.lf-file-chip button { background: none; border: none; color: var(--blue5); cursor: pointer; font-size: 14px; line-height: 1; padding: 0; }
+
+/* Bottom bar */
+.lf-bar { padding: 16px 20px 28px; background: #fff; border-top: 1px solid var(--blue2); display: flex; flex-direction: column; align-items: center; gap: 10px; position: sticky; bottom: 0; flex-shrink: 0; z-index: 10; }
+body.dark .lf-bar { background: #112030; border-color: var(--blue3); padding-bottom: 28px; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.lf-btn-sub { padding: 12px 48px; background: var(--blue4); color: #fff; border: none; border-radius: 30px; font-size: 14px; font-weight: 500; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: opacity 0.15s, transform 0.1s; width: 100%; max-width: 320px; }
+.lf-btn-sub:hover { opacity: 0.88; transform: translateY(-1px); }
+.lf-btn-sub:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+.lf-btn-clear { font-size: 13px; color: var(--text-f); cursor: pointer; background: none; border: none; font-family: 'DM Sans', sans-serif; }
+.lf-btn-clear:hover { color: var(--coral); }
+
 </style>
 </head>
 <body class="on-landing">
@@ -223,13 +336,13 @@ body.dark .landing-header-tag { color: #a08060; border-color: rgba(200,180,140,0
             </div>
             <div class="landing-arrow">›</div>
           </div>
-          <div class="landing-card landing-card-disabled">
-            <div class="landing-card-icon" style="opacity:0.4;">📝</div>
+          <div class="landing-card" onclick="startLeaveForm()">
+            <div class="landing-card-icon">📝</div>
             <div class="landing-card-text">
-              <div class="lct" style="opacity:0.4;">Leave Form</div>
-              <div class="lcs">Coming soon</div>
+              <div class="lct">Leave Form</div>
+              <div class="lcs">Time off request 2026</div>
             </div>
-            <div style="margin-left:auto;font-size:10px;background:rgba(100,80,50,0.12);color:#7A6248;padding:3px 9px;border-radius:20px;font-weight:500;white-space:nowrap;">Soon</div>
+            <div class="landing-arrow">›</div>
           </div>
         </div>
       </div>
@@ -238,6 +351,10 @@ body.dark .landing-header-tag { color: #a08060; border-color: rgba(200,180,140,0
     <!-- Page 1: Room -->
     <div class="page hidden-right" id="pg1">
       <div class="page-inner">
+        <button class="back-btn" onclick="goTo(0)">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 12L6 8l4-4"/></svg>
+          Back
+        </button>
         <div class="step-bar">
           <div class="sb-item"><div class="sb-circle active">1</div><div class="sb-label active">Room</div></div>
           <div class="sb-line"></div>
@@ -348,6 +465,101 @@ body.dark .landing-header-tag { color: #a08060; border-color: rgba(200,180,140,0
 
   </div>
 
+
+
+    <!-- Page 5: Leave Form -->
+    <div class="page hidden-right" id="pg5">
+      <div class="lf-page">
+
+        <!-- Hero header -->
+        <div class="lf-hero">
+          <div class="lf-hero-title" style="text-align:center;">Time Off Request</div>
+          <div class="lf-hero-sub" style="text-align:center;margin:0 auto;">Fill in the form below and we'll process your leave request as soon as possible.</div>
+        </div>
+
+        <div class="lf-body">
+          <button class="back-btn" onclick="goTo(0)">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 12L6 8l4-4"/></svg>
+            Back
+          </button>
+
+          <!-- Personal -->
+          <div class="lf-card">
+            <div class="lf-card-title">Personal Info</div>
+            <div class="lf-field">
+              <label class="lf-fl">Full Name <span class="req">*</span></label>
+              <input class="lf-fi" id="lf-name" type="text" placeholder="e.g. Ahmad bin Abdullah">
+            </div>
+          </div>
+
+          <!-- Leave dates -->
+          <div class="lf-card">
+            <div class="lf-card-title">Leave Schedule</div>
+            <div class="lf-field">
+              <label class="lf-fl">Leave date(s) <span class="req">*</span></label>
+              <input class="lf-fi" id="lf-date" type="text" placeholder="e.g. 7 April 2026 or 7–10 April 2026">
+            </div>
+            <div class="lf-field">
+              <label class="lf-fl">Duration <span class="req">*</span></label>
+              <div class="lf-chips" id="lf-period-chips">
+                <div class="lf-chip" onclick="selectChip('lf-period-chips',this,'AM')">AM</div>
+                <div class="lf-chip" onclick="selectChip('lf-period-chips',this,'PM')">PM</div>
+                <div class="lf-chip" onclick="selectChip('lf-period-chips',this,'Full day')">Full day</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Type of leave -->
+          <div class="lf-card">
+            <div class="lf-card-title">Type of Leave <span style="color:#D85A30">*</span></div>
+            <div class="lf-type-list" id="lf-type-list">
+              <div class="lf-type-item" onclick="selectType(this,'Sick leave (Illness or Injury)')">Sick leave (Illness or Injury)</div>
+              <div class="lf-type-item" onclick="selectType(this,'Bereavement leave (Immediate Family)')">Bereavement leave (Immediate Family)</div>
+              <div class="lf-type-item" onclick="selectType(this,'Bereavement leave (Other)')">Bereavement leave (Other)</div>
+              <div class="lf-type-item" onclick="selectType(this,'Personal leave')">Personal leave</div>
+              <div class="lf-type-item" onclick="selectType(this,'Jury duty or legal leave')">Jury duty or legal leave</div>
+              <div class="lf-type-item" onclick="selectType(this,'Emergency leave')">Emergency leave</div>
+              <div class="lf-type-item" onclick="selectType(this,'Temporary leave')">Temporary leave</div>
+              <div class="lf-type-item" onclick="selectType(this,'Leave without pay')">Leave without pay</div>
+              <div class="lf-other-wrap" id="lf-other-wrap" onclick="selectType(document.getElementById('lf-other-wrap'),'Other')">
+                
+                <input class="lf-other-input" id="lf-type-other-text" type="text" placeholder="Other: please specify…"
+                  onclick="event.stopPropagation();selectType(document.getElementById('lf-other-wrap'),'Other')">
+              </div>
+            </div>
+          </div>
+
+          <!-- Reason -->
+          <div class="lf-card">
+            <div class="lf-card-title">Reason for Leave</div>
+            <div class="lf-field">
+              <textarea class="lf-fi" id="lf-reason" placeholder="Briefly describe your reason (optional)…" style="resize:none;height:88px;"></textarea>
+            </div>
+          </div>
+
+          <!-- Supporting docs -->
+          <div class="lf-card">
+            <div class="lf-card-title">Supporting Documents</div>
+            <div class="lf-upload-zone" onclick="document.getElementById('lf-file-input').click()">
+              <div class="lf-upload-icon">📎</div>
+              <div class="lf-upload-text"><b>Click to upload</b></div>
+              <div class="lf-upload-hint">Up to 5 files · Max 10 MB each</div>
+            </div>
+            <input type="file" id="lf-file-input" multiple style="display:none" onchange="handleLfFiles(this)">
+            <div class="lf-file-chips" id="lf-file-list"></div>
+          </div>
+
+        </div><!-- end lf-body -->
+
+        <!-- Sticky bottom bar -->
+        <div class="lf-bar">
+          <button class="lf-btn-clear" onclick="clearLeaveForm()">Clear form</button>
+          <button class="lf-btn-sub" id="lf-submit-btn" onclick="submitLeave()">Submit Request →</button>
+        </div>
+
+      </div>
+    </div>
+
   <!-- Bookings sidebar -->
   <div class="bookings-sidebar">
     <div class="bh">
@@ -397,7 +609,7 @@ function goTo(n){
   document.getElementById('pg'+prev).className = 'page ' + (n > prev ? 'hidden-left' : 'hidden-right');
   document.getElementById('pg'+n).className = 'page active';
   st.cur = n;
-  if(n === 0){
+  if(n === 0 || n === 5){
     document.body.classList.add('on-landing');
   } else {
     document.body.classList.remove('on-landing');
@@ -579,7 +791,215 @@ function toggleDark(){
 }
 try{ if(localStorage.getItem('darkMode')==='1'){ document.body.classList.add('dark'); document.getElementById('dark-toggle').textContent='☀️'; } }catch(e){}
 
+
+var lfPeriodVal = '';
+var lfTypeVal   = '';
+
+function startLeaveForm(){ goTo(5); }
+
+function selectChip(groupId, el, val){
+  document.getElementById(groupId).querySelectorAll('.lf-chip').forEach(function(c){ c.classList.remove('selected'); });
+  el.classList.add('selected');
+  lfPeriodVal = val;
+}
+
+function selectType(el, val){
+  document.getElementById('lf-type-list').querySelectorAll('.lf-type-item,.lf-other-wrap').forEach(function(c){
+    c.classList.remove('selected');
+    var dot = c.querySelector('.lf-dot');
+    if(dot) dot.style.background='';
+  });
+  el.classList.add('selected');
+  lfTypeVal = val;
+}
+
+var lfFiles = [];
+
+function handleLfFiles(input){
+  var newFiles = Array.from(input.files);
+  newFiles.forEach(function(f){
+    if(lfFiles.length < 5) lfFiles.push(f);
+  });
+  input.value = '';
+  renderLfFiles();
+}
+
+function renderLfFiles(){
+  var list = document.getElementById('lf-file-list');
+  list.innerHTML = lfFiles.map(function(f,i){
+    var kb = (f.size/1024).toFixed(0);
+    return '<div class="lf-file-chip">📄 '+f.name+' <span style="opacity:0.6;font-size:10px;">('+kb+'KB)</span><button onclick="removeLfFile('+i+')">×</button></div>';
+  }).join('');
+}
+
+function removeLfFile(i){
+  lfFiles.splice(i,1);
+  renderLfFiles();
+}
+
+function clearLeaveForm(){
+  document.getElementById('lf-name').value='';
+  document.getElementById('lf-date').value='';
+  document.getElementById('lf-reason').value='';
+  document.getElementById('lf-type-other-text').value='';
+  document.getElementById('lf-file-list').innerHTML='';
+  document.getElementById('lf-file-input').value='';
+  document.getElementById('lf-period-chips').querySelectorAll('.lf-chip').forEach(function(c){ c.classList.remove('selected'); });
+  document.getElementById('lf-type-list').querySelectorAll('.lf-type-item,.lf-other-wrap').forEach(function(c){ c.classList.remove('selected'); });
+  lfPeriodVal=''; lfTypeVal='';
+}
+
+function submitLeave(){
+  var name = document.getElementById('lf-name').value.trim();
+  var date = document.getElementById('lf-date').value.trim();
+  if(!name)        { showToast('Please enter your full name'); return; }
+  if(!date)        { showToast('Please enter leave date(s)'); return; }
+  if(!lfPeriodVal) { showToast('Please select AM / PM / Full day'); return; }
+  if(!lfTypeVal)   { showToast('Please select type of leave'); return; }
+
+  var typeVal = lfTypeVal === 'Other'
+    ? 'Other: ' + (document.getElementById('lf-type-other-text').value.trim() || '—')
+    : lfTypeVal;
+
+  var btn = document.getElementById('lf-submit-btn');
+  btn.disabled = true; btn.textContent = 'Submitting…';
+
+  // Open Google Sheet in new tab
+  window.open('https://docs.google.com/spreadsheets/d/1cNgP6mkuM817OLxQbGmx2LTeb4GwPzcxFdyNd_4-k4s/edit?gid=1146090074#gid=1146090074', '_blank');
+  showToast('Leave request submitted! ✓');
+  clearLeaveForm();
+  btn.disabled=false;
+  btn.textContent='Submit Request →';
+  goTo(0);
+}
+
 renderRooms(); renderCal(); updCount(); renderBookings();
 </script>
+
+<div class="raya-corner raya-tl"><svg width="110" height="110" viewBox="0 0 110 110" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Main leaf sprays -->
+  <path d="M0 0 Q30 20 10 55" stroke="#C8922A" stroke-width="2" fill="none" opacity="0.7"/>
+  <path d="M0 0 Q50 15 35 50" stroke="#C8922A" stroke-width="1.5" fill="none" opacity="0.6"/>
+  <path d="M0 0 Q20 40 5 70" stroke="#8B6914" stroke-width="1" fill="none" opacity="0.5"/>
+  <!-- Leaf shapes -->
+  <ellipse cx="18" cy="42" rx="7" ry="14" fill="#2D7A3A" opacity="0.75" transform="rotate(-30 18 42)"/>
+  <ellipse cx="32" cy="35" rx="6" ry="12" fill="#3A9648" opacity="0.65" transform="rotate(-50 32 35)"/>
+  <ellipse cx="8" cy="58" rx="5" ry="10" fill="#2D7A3A" opacity="0.55" transform="rotate(-15 8 58)"/>
+  <!-- Ketupat diamond -->
+  <path d="M55 8 L68 20 L55 32 L42 20 Z" fill="#C8922A" opacity="0.85"/>
+  <path d="M55 11 L65 20 L55 29 L45 20 Z" fill="none" stroke="#FFF5DC" stroke-width="0.8" opacity="0.6"/>
+  <line x1="55" y1="11" x2="55" y2="29" stroke="#FFF5DC" stroke-width="0.5" opacity="0.5"/>
+  <line x1="45" y1="20" x2="65" y2="20" stroke="#FFF5DC" stroke-width="0.5" opacity="0.5"/>
+  <!-- Small star motif -->
+  <circle cx="80" cy="15" r="3" fill="#C8922A" opacity="0.6"/>
+  <circle cx="80" cy="15" r="1.5" fill="#FFF5DC" opacity="0.8"/>
+  <circle cx="92" cy="28" r="2" fill="#C8922A" opacity="0.5"/>
+  <!-- Floral dots -->
+  <circle cx="22" cy="18" r="2" fill="#C8922A" opacity="0.7"/>
+  <circle cx="35" cy="12" r="1.5" fill="#8B6914" opacity="0.6"/>
+  <circle cx="48" cy="8" r="1.5" fill="#C8922A" opacity="0.5"/>
+</svg></div>
+<div class="raya-corner raya-tr"><svg width="110" height="110" viewBox="0 0 110 110" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Main leaf sprays -->
+  <path d="M0 0 Q30 20 10 55" stroke="#C8922A" stroke-width="2" fill="none" opacity="0.7"/>
+  <path d="M0 0 Q50 15 35 50" stroke="#C8922A" stroke-width="1.5" fill="none" opacity="0.6"/>
+  <path d="M0 0 Q20 40 5 70" stroke="#8B6914" stroke-width="1" fill="none" opacity="0.5"/>
+  <!-- Leaf shapes -->
+  <ellipse cx="18" cy="42" rx="7" ry="14" fill="#2D7A3A" opacity="0.75" transform="rotate(-30 18 42)"/>
+  <ellipse cx="32" cy="35" rx="6" ry="12" fill="#3A9648" opacity="0.65" transform="rotate(-50 32 35)"/>
+  <ellipse cx="8" cy="58" rx="5" ry="10" fill="#2D7A3A" opacity="0.55" transform="rotate(-15 8 58)"/>
+  <!-- Ketupat diamond -->
+  <path d="M55 8 L68 20 L55 32 L42 20 Z" fill="#C8922A" opacity="0.85"/>
+  <path d="M55 11 L65 20 L55 29 L45 20 Z" fill="none" stroke="#FFF5DC" stroke-width="0.8" opacity="0.6"/>
+  <line x1="55" y1="11" x2="55" y2="29" stroke="#FFF5DC" stroke-width="0.5" opacity="0.5"/>
+  <line x1="45" y1="20" x2="65" y2="20" stroke="#FFF5DC" stroke-width="0.5" opacity="0.5"/>
+  <!-- Small star motif -->
+  <circle cx="80" cy="15" r="3" fill="#C8922A" opacity="0.6"/>
+  <circle cx="80" cy="15" r="1.5" fill="#FFF5DC" opacity="0.8"/>
+  <circle cx="92" cy="28" r="2" fill="#C8922A" opacity="0.5"/>
+  <!-- Floral dots -->
+  <circle cx="22" cy="18" r="2" fill="#C8922A" opacity="0.7"/>
+  <circle cx="35" cy="12" r="1.5" fill="#8B6914" opacity="0.6"/>
+  <circle cx="48" cy="8" r="1.5" fill="#C8922A" opacity="0.5"/>
+</svg></div>
+<div class="raya-corner raya-bl"><svg width="110" height="110" viewBox="0 0 110 110" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Main leaf sprays -->
+  <path d="M0 0 Q30 20 10 55" stroke="#C8922A" stroke-width="2" fill="none" opacity="0.7"/>
+  <path d="M0 0 Q50 15 35 50" stroke="#C8922A" stroke-width="1.5" fill="none" opacity="0.6"/>
+  <path d="M0 0 Q20 40 5 70" stroke="#8B6914" stroke-width="1" fill="none" opacity="0.5"/>
+  <!-- Leaf shapes -->
+  <ellipse cx="18" cy="42" rx="7" ry="14" fill="#2D7A3A" opacity="0.75" transform="rotate(-30 18 42)"/>
+  <ellipse cx="32" cy="35" rx="6" ry="12" fill="#3A9648" opacity="0.65" transform="rotate(-50 32 35)"/>
+  <ellipse cx="8" cy="58" rx="5" ry="10" fill="#2D7A3A" opacity="0.55" transform="rotate(-15 8 58)"/>
+  <!-- Ketupat diamond -->
+  <path d="M55 8 L68 20 L55 32 L42 20 Z" fill="#C8922A" opacity="0.85"/>
+  <path d="M55 11 L65 20 L55 29 L45 20 Z" fill="none" stroke="#FFF5DC" stroke-width="0.8" opacity="0.6"/>
+  <line x1="55" y1="11" x2="55" y2="29" stroke="#FFF5DC" stroke-width="0.5" opacity="0.5"/>
+  <line x1="45" y1="20" x2="65" y2="20" stroke="#FFF5DC" stroke-width="0.5" opacity="0.5"/>
+  <!-- Small star motif -->
+  <circle cx="80" cy="15" r="3" fill="#C8922A" opacity="0.6"/>
+  <circle cx="80" cy="15" r="1.5" fill="#FFF5DC" opacity="0.8"/>
+  <circle cx="92" cy="28" r="2" fill="#C8922A" opacity="0.5"/>
+  <!-- Floral dots -->
+  <circle cx="22" cy="18" r="2" fill="#C8922A" opacity="0.7"/>
+  <circle cx="35" cy="12" r="1.5" fill="#8B6914" opacity="0.6"/>
+  <circle cx="48" cy="8" r="1.5" fill="#C8922A" opacity="0.5"/>
+</svg></div>
+<div class="raya-corner raya-br"><svg width="110" height="110" viewBox="0 0 110 110" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Main leaf sprays -->
+  <path d="M0 0 Q30 20 10 55" stroke="#C8922A" stroke-width="2" fill="none" opacity="0.7"/>
+  <path d="M0 0 Q50 15 35 50" stroke="#C8922A" stroke-width="1.5" fill="none" opacity="0.6"/>
+  <path d="M0 0 Q20 40 5 70" stroke="#8B6914" stroke-width="1" fill="none" opacity="0.5"/>
+  <!-- Leaf shapes -->
+  <ellipse cx="18" cy="42" rx="7" ry="14" fill="#2D7A3A" opacity="0.75" transform="rotate(-30 18 42)"/>
+  <ellipse cx="32" cy="35" rx="6" ry="12" fill="#3A9648" opacity="0.65" transform="rotate(-50 32 35)"/>
+  <ellipse cx="8" cy="58" rx="5" ry="10" fill="#2D7A3A" opacity="0.55" transform="rotate(-15 8 58)"/>
+  <!-- Ketupat diamond -->
+  <path d="M55 8 L68 20 L55 32 L42 20 Z" fill="#C8922A" opacity="0.85"/>
+  <path d="M55 11 L65 20 L55 29 L45 20 Z" fill="none" stroke="#FFF5DC" stroke-width="0.8" opacity="0.6"/>
+  <line x1="55" y1="11" x2="55" y2="29" stroke="#FFF5DC" stroke-width="0.5" opacity="0.5"/>
+  <line x1="45" y1="20" x2="65" y2="20" stroke="#FFF5DC" stroke-width="0.5" opacity="0.5"/>
+  <!-- Small star motif -->
+  <circle cx="80" cy="15" r="3" fill="#C8922A" opacity="0.6"/>
+  <circle cx="80" cy="15" r="1.5" fill="#FFF5DC" opacity="0.8"/>
+  <circle cx="92" cy="28" r="2" fill="#C8922A" opacity="0.5"/>
+  <!-- Floral dots -->
+  <circle cx="22" cy="18" r="2" fill="#C8922A" opacity="0.7"/>
+  <circle cx="35" cy="12" r="1.5" fill="#8B6914" opacity="0.6"/>
+  <circle cx="48" cy="8" r="1.5" fill="#C8922A" opacity="0.5"/>
+</svg></div>
+<div class="raya-lamp raya-lamp-l"><svg width="32" height="90" viewBox="0 0 32 90" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <line x1="16" y1="0" x2="16" y2="20" stroke="#C8922A" stroke-width="1.5" opacity="0.7"/>
+  <g class="lamp-body">
+    <ellipse cx="16" cy="24" rx="10" ry="5" fill="#C8922A" opacity="0.9"/>
+    <path d="M6 24 Q4 45 7 55 L16 58 L25 55 Q28 45 26 24 Z" fill="#D4A843" opacity="0.9"/>
+    <path d="M8 28 Q7 42 9 52" stroke="#FFF5DC" stroke-width="0.6" opacity="0.4"/>
+    <path d="M16 28 L16 52" stroke="#FFF5DC" stroke-width="0.6" opacity="0.4"/>
+    <path d="M24 28 Q25 42 23 52" stroke="#FFF5DC" stroke-width="0.6" opacity="0.4"/>
+    <ellipse cx="16" cy="57" rx="9" ry="4" fill="#C8922A" opacity="0.9"/>
+    <!-- glow -->
+    <ellipse cx="16" cy="42" rx="6" ry="10" fill="#FFF0A0" opacity="0.25"/>
+    <!-- tassel -->
+    <line x1="13" y1="61" x2="11" y2="75" stroke="#C8922A" stroke-width="1" opacity="0.7"/>
+    <line x1="16" y1="61" x2="16" y2="77" stroke="#C8922A" stroke-width="1" opacity="0.7"/>
+    <line x1="19" y1="61" x2="21" y2="75" stroke="#C8922A" stroke-width="1" opacity="0.7"/>
+  </g>
+</svg></div>
+<div class="raya-lamp raya-lamp-r"><svg width="32" height="90" viewBox="0 0 32 90" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <line x1="16" y1="0" x2="16" y2="20" stroke="#C8922A" stroke-width="1.5" opacity="0.7"/>
+  <g class="lamp-body-r">
+    <ellipse cx="16" cy="24" rx="10" ry="5" fill="#C8922A" opacity="0.9"/>
+    <path d="M6 24 Q4 45 7 55 L16 58 L25 55 Q28 45 26 24 Z" fill="#D4A843" opacity="0.9"/>
+    <path d="M8 28 Q7 42 9 52" stroke="#FFF5DC" stroke-width="0.6" opacity="0.4"/>
+    <path d="M16 28 L16 52" stroke="#FFF5DC" stroke-width="0.6" opacity="0.4"/>
+    <path d="M24 28 Q25 42 23 52" stroke="#FFF5DC" stroke-width="0.6" opacity="0.4"/>
+    <ellipse cx="16" cy="57" rx="9" ry="4" fill="#C8922A" opacity="0.9"/>
+    <ellipse cx="16" cy="42" rx="6" ry="10" fill="#FFF0A0" opacity="0.25"/>
+    <line x1="13" y1="61" x2="11" y2="75" stroke="#C8922A" stroke-width="1" opacity="0.7"/>
+    <line x1="16" y1="61" x2="16" y2="77" stroke="#C8922A" stroke-width="1" opacity="0.7"/>
+    <line x1="19" y1="61" x2="21" y2="75" stroke="#C8922A" stroke-width="1" opacity="0.7"/>
+  </g>
+</svg></div>
+
 </body>
 </html>
