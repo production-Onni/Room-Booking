@@ -149,6 +149,11 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
 /* Dark mode toggle */
 .dark-toggle { position: fixed; bottom: 24px; left: 24px; z-index: 998; width: 40px; height: 40px; border-radius: 50%; background: var(--card); border: 1.5px solid var(--border); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 18px; box-shadow: 0 2px 12px rgba(0,0,0,0.1); transition: all 0.2s; }
 .dark-toggle:hover { border-color: var(--purple); transform: scale(1.08); }
+.home-btn { position: fixed; bottom: 24px; right: 72px; z-index: 998; width: 40px; height: 40px; border-radius: 50%; background: var(--card); border: 1.5px solid var(--border); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 18px; box-shadow: 0 2px 12px rgba(0,0,0,0.1); transition: all 0.2s; }
+.home-btn:hover { border-color: var(--purple); transform: scale(1.08); background: var(--purple); }
+.version-badge { position: fixed; bottom: 24px; right: 24px; z-index: 998; background: var(--card); border: 1.5px solid var(--border); border-radius: 20px; padding: 4px 10px; font-size: 10px; color: var(--text-f); font-family: 'DM Sans', sans-serif; font-weight: 500; letter-spacing: 0.05em; box-shadow: 0 2px 12px rgba(0,0,0,0.1); }
+body.dark .home-btn { background: #1c1a2e; }
+body.dark .version-badge { background: #1c1a2e; }
 
 /* Dark mode */
 body.dark {
@@ -312,6 +317,8 @@ body.dark .dark-toggle { background: #1c1a2e; }
 
 <div class="toast" id="toast"></div>
 <button class="dark-toggle" id="dark-toggle" onclick="toggleDark()" title="Toggle dark mode">🌙</button>
+<button class="home-btn" onclick="goHome()" title="Back to Home">🏠</button>
+<div class="version-badge">v01</div>
 
 <script>
 const rooms = [
@@ -449,7 +456,7 @@ function submitBooking(){
   // Auto-insert into Google Calendar
   var calEventTitle = 'Booking: ' + b.room.name;
   var calEventDetails = 'Person in Charge: ' + b.name + (b.note ? '\nNotes: ' + b.note : '');
- // addToGoogleCalendar(b.id, startISO, endISO, calEventTitle, calEventDetails);
+  addToGoogleCalendar(b.id, startISO, endISO, calEventTitle, calEventDetails);
 
   // Send to SheetDB → Google Sheets → Google Calendar
   fetch('https://sheetdb.io/api/v1/7rbi5f8z4cn32', {
@@ -510,6 +517,11 @@ function showToast(msg){
   var t = document.getElementById('toast');
   t.textContent = msg; t.classList.add('show');
   setTimeout(function(){ t.classList.remove('show'); }, 2800);
+}
+
+function goHome(){
+  st.room=null; st.date=null; st.time=null;
+  goTo(1);
 }
 
 function toggleDark(){
