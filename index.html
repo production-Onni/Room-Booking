@@ -902,14 +902,33 @@ function selDate(iso){
 function renderSlots(){
   if(!st.date||!st.room) return;
   var dateStr = st.date.toLocaleDateString('en-GB',{month:'long',day:'numeric'});
-  var booked = getBookedSlots(st.room.id, dateStr);
-  document.getElementById('time-grid').innerHTML = ALL_SLOTS.map(function(t){
-    var isUnavail = booked.indexOf(t) !== -1;
-    var cls = 'ts' + (isUnavail?' unavail':'');
-    var click = isUnavail ? '' : ' onclick="selTime(\''+t+'\')"';
-    var title = isUnavail ? ' title="Already booked"' : '';
-    return '<div class="'+cls+'"'+click+title+'>'+t+'</div>';
-  }).join('');
+  var grid = document.getElementById('time-grid');
+  grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:20px;color:var(--text-f);font-size:13px;">Checking availability...</div>';
+
+  var url = 'https://script.google.com/macros/s/AKfycbwrWP8Nr6M9pKXT_6OAtnsZ2NP7lNuJb6NUF1BhLmlaCy_S9Kki2aX05bf_NAp-OidoQA/exec?action=check&room_name=' + encodeURIComponent(st.room.name) + '&date=' + encodeURIComponent(dateStr);
+
+  function drawSlots(allBooked){
+    grid.innerHTML = ALL_SLOTS.map(function(t){
+      var isUnavail = allBooked.indexOf(t) !== -1;
+      var cls = 'ts' + (isUnavail?' unavail':'');
+      var click = isUnavail ? '' : ' onclick="selTime(\'' + t + '\')"';
+      var ttl = isUnavail ? ' title="Already booked"' : '';
+      return '<div class="'+cls+'"'+click+ttl+'>'+t+'</div>';
+    }).join('');
+  }
+
+  fetch(url)
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      var liveBooked = data.booked || [];
+      var localBooked = getBookedSlots(st.room.id, dateStr);
+      var merged = liveBooked.slice();
+      localBooked.forEach(function(t){ if(merged.indexOf(t)===-1) merged.push(t); });
+      drawSlots(merged);
+    })
+    .catch(function(){
+      drawSlots(getBookedSlots(st.room.id, dateStr));
+    });
 }
 
 function selTime(t){
@@ -927,13 +946,39 @@ function submitBooking(){
   var note = document.getElementById('inp-note').value.trim();
   if(!name){ showToast('Please enter the person in charge'); return; }
 
-  var dateStr = st.date.toLocaleDateString('en-GB',{month:'long',day:'numeric'});
-  var b = {id:Date.now(), room:st.room, date:dateStr, time:st.time, name:name, note:note, status:'pending'};
-
-  // Disable button to prevent double submit
   var btn = document.getElementById('btn-sub');
   btn.disabled = true;
-  btn.textContent = 'Sending...';
+  btn.textContent = 'Checking...';
+
+  var dateStr = st.date.toLocaleDateString('en-GB',{month:'long',day:'numeric'});
+  var checkUrl = 'https://script.google.com/macros/s/AKfycbwrWP8Nr6M9pKXT_6OAtnsZ2NP7lNuJb6NUF1BhLmlaCy_S9Kki2aX05bf_NAp-OidoQA/exec?action=check&room_name=' + encodeURIComponent(st.room.name) + '&date=' + encodeURIComponent(dateStr);
+
+  // Final check before submitting - prevent double booking
+  fetch(checkUrl)
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      var liveBooked = data.booked || [];
+      if(liveBooked.indexOf(st.time) !== -1){
+        // Slot just got taken!
+        btn.disabled = false;
+        btn.innerHTML = 'Confirm Booking &#8594;';
+        showToast('Sorry! This slot was just booked. Please select another time.');
+        renderSlots();
+        goTo(3);
+        return;
+      }
+      // Slot is free - proceed
+      doSubmit(name, note, dateStr, btn);
+    })
+    .catch(function(){
+      // If check fails, proceed anyway (fallback)
+      doSubmit(name, note, dateStr, btn);
+    });
+}
+
+function doSubmit(name, note, dateStr, btn){
+  btn.textContent = 'Confirming...';
+  var b = {id:Date.now(), room:st.room, date:dateStr, time:st.time, name:name, note:note, status:'pending'};
 
   // Send via EmailJS
   emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
