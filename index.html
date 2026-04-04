@@ -305,6 +305,31 @@ body.dark .lf-bar { background: #112030; border-color: var(--blue3); padding-bot
 .lf-btn-clear { font-size: 13px; color: var(--text-f); cursor: pointer; background: none; border: none; font-family: 'DM Sans', sans-serif; }
 .lf-btn-clear:hover { color: var(--coral); }
 
+
+/* ── Leave Form Calendar ─────────────────────────────── */
+.lf-cal-wrap { user-select: none; }
+.lf-cal-hdr { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.lf-cal-month { font-size: 14px; font-weight: 500; color: var(--text); }
+.lf-cal-nav { background: var(--blue1); border: 1.5px solid var(--blue2); border-radius: 8px; color: var(--text-m); cursor: pointer; font-size: 16px; padding: 3px 11px; transition: all 0.15s; }
+.lf-cal-nav:hover { border-color: var(--blue4); color: var(--blue4); }
+.lf-cal-dh { display: grid; grid-template-columns: repeat(7,1fr); margin-bottom: 4px; }
+.lf-cal-dl { font-size: 11px; color: var(--text-f); text-align: center; padding: 3px 0; }
+.lf-cal-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 2px; }
+.lf-cal-cw { display: flex; align-items: center; justify-content: center; padding: 2px 0; }
+.lf-cc { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; cursor: pointer; color: var(--text); transition: all 0.15s; flex-shrink: 0; }
+.lf-cc:hover:not(.lf-cc-past):not(.lf-cc-empty) { background: var(--blue2); color: var(--blue4); }
+.lf-cc.lf-cc-today { color: var(--blue4); font-weight: 600; }
+.lf-cc.lf-cc-past { color: var(--text-f); cursor: default; }
+.lf-cc.lf-cc-sel { background: var(--blue4); color: #fff; }
+.lf-cc.lf-cc-in-range { background: var(--blue2); color: var(--blue5); border-radius: 0; }
+.lf-cc.lf-cc-range-start { background: var(--blue4); color: #fff; border-radius: 50% 0 0 50%; }
+.lf-cc.lf-cc-range-end { background: var(--blue4); color: #fff; border-radius: 0 50% 50% 0; }
+.lf-date-display { margin-top: 12px; padding: 10px 14px; background: var(--blue1); border: 1.5px solid var(--blue2); border-radius: 10px; font-size: 13px; color: var(--blue4); font-weight: 500; min-height: 40px; display: flex; align-items: center; gap: 8px; }
+.lf-date-display .lf-date-placeholder { color: var(--text-f); font-weight: 400; }
+.lf-date-clear { margin-left: auto; font-size: 16px; cursor: pointer; color: var(--text-f); line-height: 1; }
+.lf-date-clear:hover { color: var(--coral); }
+.lf-cal-hint { font-size: 11px; color: var(--text-f); margin-top: 6px; }
+
 </style>
 </head>
 <body class="on-landing">
@@ -497,7 +522,23 @@ body.dark .lf-bar { background: #112030; border-color: var(--blue3); padding-bot
             <div class="lf-card-title">Leave Schedule</div>
             <div class="lf-field">
               <label class="lf-fl">Leave date(s) <span class="req">*</span></label>
-              <input class="lf-fi" id="lf-date" type="text" placeholder="e.g. 7 April 2026 or 7–10 April 2026">
+              <div class="lf-cal-wrap">
+                <div class="lf-cal-hdr">
+                  <button class="lf-cal-nav" onclick="lfChMonth(-1)">&#8249;</button>
+                  <div class="lf-cal-month" id="lf-cal-lbl"></div>
+                  <button class="lf-cal-nav" onclick="lfChMonth(1)">&#8250;</button>
+                </div>
+                <div class="lf-cal-dh">
+                  <div class="lf-cal-dl">Su</div><div class="lf-cal-dl">Mo</div><div class="lf-cal-dl">Tu</div>
+                  <div class="lf-cal-dl">We</div><div class="lf-cal-dl">Th</div><div class="lf-cal-dl">Fr</div><div class="lf-cal-dl">Sa</div>
+                </div>
+                <div class="lf-cal-grid" id="lf-cal-grid"></div>
+                <div class="lf-date-display" id="lf-date-display">
+                  <span class="lf-date-placeholder" id="lf-date-text">Tap a date, or tap two dates for a range</span>
+                  <span class="lf-date-clear" id="lf-date-clear" style="display:none" onclick="lfClearDates()">×</span>
+                </div>
+                <div class="lf-cal-hint">Tap once for single day · Tap twice for a date range</div>
+              </div>
             </div>
             <div class="lf-field">
               <label class="lf-fl">Duration <span class="req">*</span></label>
@@ -649,7 +690,7 @@ function renderCal(){
     var isToday = dt.toDateString() === today.toDateString();
     var isSel = st.date && st.date.toDateString() === dt.toDateString();
     var cls = 'cc' + (isPast?' past':'') + (isToday?' today':'') + (isSel?' selected':'');
-    var click = isPast ? '' : ' onclick="selDate(\''+dt.toISOString()+'\')"';
+    var click = isPast ? '' : ' onclick="lfSelDate(' + "'" + dt.toISOString() + "'" + ')"';
     html += '<div class="cal-cw"><div class="'+cls+'"'+click+'>'+d+'</div></div>';
   }
   document.getElementById('cal-grid').innerHTML = html;
@@ -709,7 +750,7 @@ function submitBooking(){
     date:        b.date,
     time:        b.time,
     person_name: b.name,
-    notes:       b.note || '—'
+    notes:       b.note || '-'
   })
   .then(function(){
     showToast('Booking confirmed! Email sent ✓');
@@ -717,7 +758,7 @@ function submitBooking(){
   })
   .catch(function(err){
     console.warn('EmailJS error:', err);
-    showToast('Booking saved. Email failed — check console.');
+    showToast('Booking saved. Email failed - check console.');
     finalise(b);
   });
 }
@@ -839,7 +880,7 @@ function removeLfFile(i){
 
 function clearLeaveForm(){
   document.getElementById('lf-name').value='';
-  document.getElementById('lf-date').value='';
+  lfClearDates();
   document.getElementById('lf-reason').value='';
   document.getElementById('lf-type-other-text').value='';
   document.getElementById('lf-file-list').innerHTML='';
@@ -851,29 +892,137 @@ function clearLeaveForm(){
 
 function submitLeave(){
   var name = document.getElementById('lf-name').value.trim();
-  var date = document.getElementById('lf-date').value.trim();
   if(!name)        { showToast('Please enter your full name'); return; }
-  if(!date)        { showToast('Please enter leave date(s)'); return; }
+  if(!lfDateStr)   { showToast('Please select leave date(s)'); return; }
   if(!lfPeriodVal) { showToast('Please select AM / PM / Full day'); return; }
   if(!lfTypeVal)   { showToast('Please select type of leave'); return; }
 
   var typeVal = lfTypeVal === 'Other'
-    ? 'Other: ' + (document.getElementById('lf-type-other-text').value.trim() || '—')
+    ? 'Other: ' + (document.getElementById('lf-type-other-text').value.trim() || '-')
     : lfTypeVal;
 
   var btn = document.getElementById('lf-submit-btn');
-  btn.disabled = true; btn.textContent = 'Submitting…';
+  btn.disabled = true; btn.textContent = 'Submitting...';
 
-  // Open Google Sheet in new tab
-  window.open('https://docs.google.com/spreadsheets/d/1cNgP6mkuM817OLxQbGmx2LTeb4GwPzcxFdyNd_4-k4s/edit?gid=1146090074#gid=1146090074', '_blank');
-  showToast('Leave request submitted! ✓');
+  // Write to Google Sheets via Apps Script
+  var LF_WEB_APP = 'https://script.google.com/macros/s/AKfycbwrWP8Nr6M9pKXT_6OAtnsZ2NP7lNuJb6NUF1BhLmlaCy_S9Kki2aX05bf_NAp-OidoQA/exec';
+  fetch(LF_WEB_APP, {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      person_name: name,
+      date:        lfDateStr,
+      period:      lfPeriodVal,
+      leave_type:  typeVal,
+      reason:      document.getElementById('lf-reason').value.trim() || '-'
+    })
+  })
+  .then(function(){ showToast('Leave request submitted! ✓'); })
+  .catch(function(err){ console.warn('Apps Script error:', err); showToast('Submitted! (sync pending)'); });
+
   clearLeaveForm();
   btn.disabled=false;
-  btn.textContent='Submit Request →';
+  btn.textContent='Submit Request ->';
   goTo(0);
 }
 
-renderRooms(); renderCal(); updCount(); renderBookings();
+// ── Leave Form Calendar ───────────────────────────────
+var lfCalMonth = new Date();
+var lfDateStart = null;
+var lfDateEnd   = null;
+var lfDateStr   = '';
+var MONTHS_LF   = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+function lfChMonth(d){
+  lfCalMonth = new Date(lfCalMonth.getFullYear(), lfCalMonth.getMonth()+d, 1);
+  lfRenderCal();
+}
+
+function lfRenderCal(){
+  var m = lfCalMonth;
+  document.getElementById('lf-cal-lbl').textContent = MONTHS_LF[m.getMonth()] + ' ' + m.getFullYear();
+  var first = new Date(m.getFullYear(), m.getMonth(), 1).getDay();
+  var days  = new Date(m.getFullYear(), m.getMonth()+1, 0).getDate();
+  var today = new Date(); today.setHours(0,0,0,0);
+  var html  = '';
+  for(var i=0;i<first;i++) html += '<div class="lf-cal-cw"><div class="lf-cc lf-cc-empty"></div></div>';
+  for(var d=1;d<=days;d++){
+    var dt = new Date(m.getFullYear(), m.getMonth(), d);
+    var isPast = dt < today;
+    var isToday = dt.getTime() === today.getTime();
+    var cls = 'lf-cc';
+    if(isPast) cls += ' lf-cc-past';
+    if(isToday) cls += ' lf-cc-today';
+    if(lfDateStart && lfDateEnd){
+      var t = dt.getTime();
+      var s = lfDateStart.getTime();
+      var e = lfDateEnd.getTime();
+      if(t === s) cls += ' lf-cc-range-start';
+      else if(t === e) cls += ' lf-cc-range-end';
+      else if(t > s && t < e) cls += ' lf-cc-in-range';
+    } else if(lfDateStart && dt.getTime()===lfDateStart.getTime()){
+      cls += ' lf-cc-sel';
+    }
+    var isoStr = dt.toISOString();
+    var click = isPast ? '' : (' onclick="lfSelDate(\'' + isoStr + '\')"');
+    html += '<div class="lf-cal-cw"><div class="' + cls + '"' + click + '>' + d + '</div></div>';
+  }
+  document.getElementById('lf-cal-grid').innerHTML = html;
+}
+
+function lfSelDate(iso){
+  var dt = new Date(iso);
+  if(!lfDateStart || (lfDateStart && lfDateEnd)){
+    lfDateStart = dt; lfDateEnd = null;
+  } else {
+    if(dt.getTime() === lfDateStart.getTime()){
+      lfDateStart = null;
+    } else if(dt < lfDateStart){
+      lfDateEnd = lfDateStart; lfDateStart = dt;
+    } else {
+      lfDateEnd = dt;
+    }
+  }
+  lfUpdateDateDisplay();
+  lfRenderCal();
+}
+
+function lfUpdateDateDisplay(){
+  var disp = document.getElementById('lf-date-text');
+  var clr  = document.getElementById('lf-date-clear');
+  var opts = {month:'long', day:'numeric'};
+  if(lfDateStart && lfDateEnd){
+    var s = lfDateStart.toLocaleDateString('en-GB', opts);
+    var e = lfDateEnd.toLocaleDateString('en-GB', opts);
+    lfDateStr = s + ' - ' + e;
+    disp.textContent = lfDateStr;
+    disp.className = '';
+    clr.style.display = 'block';
+  } else if(lfDateStart){
+    lfDateStr = lfDateStart.toLocaleDateString('en-GB', opts);
+    disp.textContent = lfDateStr;
+    disp.className = '';
+    clr.style.display = 'block';
+  } else {
+    lfDateStr = '';
+    disp.textContent = 'Tap a date, or tap two dates for a range';
+    disp.className = 'lf-date-placeholder';
+    clr.style.display = 'none';
+  }
+}
+
+function lfClearDates(){
+  lfDateStart = null; lfDateEnd = null; lfDateStr = '';
+  lfUpdateDateDisplay(); lfRenderCal();
+}
+
+// ── Write to Google Sheets via SheetDB ───────────────
+var LF_SHEETDB_URL = 'https://sheetdb.io/api/v1/7rbi5f8z4cn32';
+
+
+renderRooms();
+lfRenderCal(); renderCal(); updCount(); renderBookings();
 </script>
 
 <div class="raya-corner raya-tl"><svg width="110" height="110" viewBox="0 0 110 110" fill="none" xmlns="http://www.w3.org/2000/svg">
