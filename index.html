@@ -413,6 +413,29 @@ body.dark .login-input { background: #16152a; border-color: rgba(123,114,216,0.2
 .ov-legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--text-m); }
 .ov-legend-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
 
+
+/* ── My Bookings Modal ───────────────────────────────── */
+.mb-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 2000; opacity: 0; pointer-events: none; transition: opacity 0.25s; }
+.mb-overlay.show { opacity: 1; pointer-events: all; }
+.mb-panel { position: fixed; top: 0; right: 0; bottom: 0; width: 340px; max-width: 100vw; background: var(--card); box-shadow: -4px 0 32px rgba(0,0,0,0.15); z-index: 2001; display: flex; flex-direction: column; transform: translateX(100%); transition: transform 0.3s cubic-bezier(.4,0,.2,1); }
+.mb-panel.show { transform: translateX(0); }
+.mb-panel-hdr { padding: 18px 18px 14px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; background: var(--purple); }
+.mb-panel-title { font-family: 'DM Serif Display', serif; font-size: 16px; color: #fff; }
+.mb-panel-close { background: rgba(255,255,255,0.15); border: none; color: #fff; width: 28px; height: 28px; border-radius: 50%; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; transition: background 0.15s; }
+.mb-panel-close:hover { background: rgba(255,255,255,0.3); }
+.mb-panel-body { flex: 1; overflow-y: auto; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; }
+.mb-empty { text-align: center; padding: 48px 16px; color: var(--text-f); font-size: 13px; }
+.mb-card { border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+.mb-top { display: flex; align-items: center; gap: 10px; padding: 10px 12px; }
+.mb-icon { width: 36px; height: 36px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+.mb-info { flex: 1; min-width: 0; }
+.mb-room { font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 2px; }
+.mb-meta { font-size: 11px; color: var(--text-m); }
+.mb-badge { font-size: 11px; padding: 3px 8px; border-radius: 20px; font-weight: 500; white-space: nowrap; }
+.mb-foot { padding: 6px 12px; background: var(--bg); border-top: 1px solid var(--border); font-size: 10px; color: var(--text-f); }
+.mb-cancel { background: none; border: none; color: var(--text-f); cursor: pointer; font-size: 13px; padding: 2px 6px; border-radius: 4px; transition: all 0.15s; margin-left: 4px; }
+.mb-cancel:hover { color: var(--coral); background: var(--coral-light); }
+
 </style>
 </head>
 <body class="on-landing">
@@ -451,7 +474,7 @@ body.dark .login-input { background: #16152a; border-color: rgba(123,114,216,0.2
 
 <header class="site-header">
   <div class="logo">Live Booking <span>STUDIO RESERVATION</span></div>
-  <div class="hcount" id="hcount">My Bookings (0)</div>
+  <div class="hcount" id="hcount" onclick="openMB()" style="cursor:pointer;">My Bookings (0)</div>
 </header>
 
 <div class="main">
@@ -1372,6 +1395,48 @@ function handleFiles(input){
   renderLfFiles();
 }
 
+function openMB(){
+  renderMB();
+  document.getElementById('mb-overlay').classList.add('show');
+  document.getElementById('mb-panel').classList.add('show');
+}
+
+function closeMB(){
+  document.getElementById('mb-overlay').classList.remove('show');
+  document.getElementById('mb-panel').classList.remove('show');
+}
+
+function renderMB(){
+  var body = document.getElementById('mb-body');
+  if(!st.bookings.length){
+    body.innerHTML = '<div class="mb-empty"><div style="font-size:32px;opacity:0.4;margin-bottom:10px;">📭</div>No bookings yet</div>';
+    return;
+  }
+  body.innerHTML = st.bookings.map(function(b){
+    var rc = roomColors[b.room.id] || {dot:'#534AB7'};
+    var bgMap = {1:'var(--purple-light)',2:'var(--teal-light)',3:'var(--coral-light)',4:'var(--pink-light)',5:'var(--blue-light)',6:'var(--amber-light)',7:'var(--green-light)'};
+    var bg = bgMap[b.room.id] || 'var(--purple-light)';
+    return '<div class="mb-card">'
+      + '<div class="mb-top">'
+      + '<div class="mb-icon" style="background:' + bg + '">' + b.room.icon + '</div>'
+      + '<div class="mb-info">'
+      + '<div class="mb-room">' + b.room.name + ' &middot; ' + b.time + '</div>'
+      + '<div class="mb-meta">' + b.date + ' &middot; ' + b.name + '</div>'
+      + '</div>'
+      + '<span class="mb-badge ' + (b.status==='confirmed'?'sc2':'sp') + '">' + (b.status==='confirmed'?'Confirmed':'Pending') + '</span>'
+      + '<button class="mb-cancel" onclick="cancelFromMB(' + b.id + ')" title="Cancel">&#x2715;</button>'
+      + '</div>'
+      + (b.note ? '<div class="mb-foot">Note: ' + b.note + '</div>' : '')
+      + '</div>';
+  }).join('');
+}
+
+function cancelFromMB(id){
+  st.bookings = st.bookings.filter(function(b){ return b.id !== id; });
+  save(); updCount(); renderBookings(); renderMB();
+  showToast('Booking cancelled');
+}
+
 renderRooms();
 lfRenderCal(); renderCal(); updCount(); renderBookings();
 </script>
@@ -1500,6 +1565,19 @@ lfRenderCal(); renderCal(); updCount(); renderBookings();
     <line x1="19" y1="61" x2="21" y2="75" stroke="#C8922A" stroke-width="1" opacity="0.7"/>
   </g>
 </svg></div>
+
+
+<!-- My Bookings Modal -->
+<div class="mb-overlay" id="mb-overlay" onclick="closeMB()"></div>
+<div class="mb-panel" id="mb-panel">
+  <div class="mb-panel-hdr">
+    <div class="mb-panel-title">My Bookings</div>
+    <button class="mb-panel-close" onclick="closeMB()">&#x2715;</button>
+  </div>
+  <div class="mb-panel-body" id="mb-body">
+    <div class="mb-empty">No bookings yet</div>
+  </div>
+</div>
 
 </body>
 </html>
