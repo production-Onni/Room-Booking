@@ -317,7 +317,7 @@ body.dark .dark-toggle { background: #1c1a2e; }
 <div class="toast" id="toast"></div>
 <button class="dark-toggle" id="dark-toggle" onclick="toggleDark()" title="Toggle dark mode">🌙</button>
 <button class="home-btn" onclick="goHome()" title="Back to Home">🏠</button>
-<div class="version-badge">v01</div>
+<div class="version-badge">v02</div>
 
 <script>
 const rooms = [
@@ -452,10 +452,7 @@ function submitBooking(){
   var startISO = year+'-'+month+'-'+day+'T'+startHour+':00:00';
   var endISO   = year+'-'+month+'-'+day+'T'+endHour+':00:00';
 
-  // Auto-insert into Google Calendar
-  var calEventTitle = 'Booking: ' + b.room.name;
-  var calEventDetails = 'Person in Charge: ' + b.name + (b.note ? '\nNotes: ' + b.note : '');
-  // addToGoogleCalendar disabled - using Make.com instead
+
 
   // Send to SheetDB → Google Sheets → Google Calendar
   fetch('https://sheetdb.io/api/v1/7rbi5f8z4cn32', {
@@ -500,10 +497,9 @@ function renderBookings(){
 
 function cancelBooking(id){
   var b = st.bookings.find(function(x){ return x.id===id; });
-  // deleteCalendarEvent disabled - using Make.com instead
   st.bookings = st.bookings.filter(function(b){ return b.id!==id; });
   save(); updCount(); renderBookings();
-  if(!(b && b.calEventId)) showToast('Booking cancelled');
+  showToast('Booking cancelled');
 }
 
 function updCount(){
@@ -531,7 +527,6 @@ function toggleDark(){
 }
 try{ if(localStorage.getItem('darkMode')==='1'){ document.body.classList.add('dark'); document.getElementById('dark-toggle').textContent='☀️'; } }catch(e){}
 
-// Google Calendar handled by Make.com
 
 renderRooms(); renderCal(); updCount(); renderBookings();
 </script>
