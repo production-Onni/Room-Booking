@@ -26,6 +26,7 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
 .site-header { background: var(--purple); padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 16px rgba(83,58,183,0.18); flex-shrink: 0; transition: opacity 0.3s; }
 body.on-landing .site-header { display: none; }
 body.on-landing .bookings-sidebar { display: none; }
+body.on-landing-ov .site-header { display: flex; }
 .logo { font-family: 'DM Serif Display', serif; font-size: 18px; color: #fff; letter-spacing: 0.04em; }
 .logo span { display: inline-block; background: rgba(255,255,255,0.18); border-radius: 6px; padding: 2px 8px; font-size: 11px; font-family: 'DM Sans', sans-serif; font-weight: 300; margin-left: 8px; vertical-align: middle; }
 .hcount { color: rgba(255,255,255,0.85); font-size: 12px; padding: 4px 12px; border: 1px solid rgba(255,255,255,0.3); border-radius: 20px; cursor: pointer; transition: background 0.2s; }
@@ -59,6 +60,7 @@ body.on-landing .bookings-sidebar { display: none; }
 
 .back-btn { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 500; color: var(--purple); background: var(--purple-light); border: 1.5px solid var(--purple-mid); border-radius: 10px; cursor: pointer; padding: 8px 16px; margin-bottom: 24px; transition: all 0.15s; }
 .back-btn:hover { background: var(--purple); color: #fff; border-color: var(--purple); }
+.back-btn:hover svg { stroke: #fff; }
 .back-btn svg { width: 15px; height: 15px; }
 
 .room-list { display: flex; flex-direction: column; gap: 10px; }
@@ -436,9 +438,35 @@ body.dark .login-input { background: #16152a; border-color: rgba(123,114,216,0.2
 .mb-cancel { background: none; border: none; color: var(--text-f); cursor: pointer; font-size: 13px; padding: 2px 6px; border-radius: 4px; transition: all 0.15s; margin-left: 4px; }
 .mb-cancel:hover { color: var(--coral); background: var(--coral-light); }
 
+
+/* ── Office Manual ───────────────────────────────────── */
+.om-page { background: #FAF8F6; min-height: 100%; display: flex; flex-direction: column; }
+.om-hero { background: linear-gradient(135deg, #C8647A 0%, #A84D63 100%); padding: 36px 28px 44px; position: relative; overflow: hidden; flex-shrink: 0; text-align: center; }
+.om-hero::before { content: ''; position: absolute; top: -50px; right: -50px; width: 200px; height: 200px; border-radius: 50%; background: rgba(255,255,255,0.07); }
+.om-hero::after { content: ''; position: absolute; bottom: -60px; left: -30px; width: 220px; height: 220px; border-radius: 50%; background: rgba(255,255,255,0.05); }
+.om-hero-title { font-family: 'DM Serif Display', serif; font-size: 26px; color: #fff; margin-bottom: 6px; position: relative; z-index: 1; }
+.om-hero-sub { font-size: 12px; color: rgba(255,255,255,0.7); letter-spacing: 0.1em; text-transform: uppercase; position: relative; z-index: 1; }
+.om-body { padding: 24px 20px 80px; max-width: 600px; width: 100%; margin: 0 auto; flex: 1; }
+.om-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+@media(max-width: 500px) { .om-grid { grid-template-columns: 1fr; } }
+.om-card { background: #fff; border-radius: 18px; padding: 20px; box-shadow: 0 2px 12px rgba(180,80,100,0.07); border: 1px solid rgba(200,100,120,0.1); transition: transform 0.15s, box-shadow 0.15s; }
+.om-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(180,80,100,0.12); }
+.om-card-icon { font-size: 28px; margin-bottom: 12px; }
+.om-card-title { font-size: 14px; font-weight: 600; color: #A84D63; margin-bottom: 10px; letter-spacing: 0.02em; }
+.om-card-rules { display: flex; flex-direction: column; gap: 7px; }
+.om-rule { display: flex; align-items: flex-start; gap: 8px; font-size: 12px; color: #555; line-height: 1.4; }
+.om-rule-dot { width: 6px; height: 6px; border-radius: 50%; background: #C8647A; flex-shrink: 0; margin-top: 4px; }
+body.dark .om-page { background: #1a1218; }
+body.dark .om-card { background: #251820; border-color: rgba(200,100,120,0.15); box-shadow: 0 2px 12px rgba(0,0,0,0.2); }
+body.dark .om-card-title { color: #e08090; }
+body.dark .om-rule { color: #b090a0; }
+body.dark .om-rule-dot { background: #e08090; }
+
+
 </style>
 </head>
 <body class="on-landing">
+
 
 <div class="login-page" id="login-page">
   <div class="login-box">
@@ -504,6 +532,14 @@ body.dark .login-input { background: #16152a; border-color: rgba(123,114,216,0.2
             <div class="landing-card-text">
               <div class="lct">Leave Form</div>
               <div class="lcs">Time off request 2026</div>
+            </div>
+            <div class="landing-arrow">›</div>
+          </div>
+          <div class="landing-card" onclick="goTo(7)">
+            <div class="landing-card-icon">📋</div>
+            <div class="landing-card-text">
+              <div class="lct">Office Manual</div>
+              <div class="lcs">New Office User Guide</div>
             </div>
             <div class="landing-arrow">›</div>
           </div>
@@ -636,16 +672,15 @@ body.dark .login-input { background: #16152a; border-color: rgba(123,114,216,0.2
 
         <!-- Hero header -->
         <div class="lf-hero">
-          <div class="lf-hero-title" style="text-align:center;">Time Off Request</div>
-          <div class="lf-hero-sub" style="text-align:center;margin:0 auto;">Fill in the form below and we'll process your leave request as soon as possible.</div>
+          <div class="lf-hero-title" style="align-self:center;">Time Off Request</div>
+          <div class="lf-hero-sub" style="align-self:center;text-align:center;margin:0 auto;">Fill in the form below and we'll process your leave request as soon as possible.</div>
         </div>
 
         <div class="lf-body">
-          <button class="back-btn" onclick="goTo(0)">
+          <button class="back-btn" onclick="goTo(0)" style="margin-bottom:20px;color:var(--blue4);background:var(--blue1);border-color:var(--blue2);" onmouseover="this.style.background='var(--blue4)';this.style.color='#fff';this.style.borderColor='var(--blue4)'" onmouseout="this.style.background='var(--blue1)';this.style.color='var(--blue4)';this.style.borderColor='var(--blue2)'">
             <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 12L6 8l4-4"/></svg>
             Back
           </button>
-
           <!-- Personal -->
           <div class="lf-card">
             <div class="lf-card-title">Personal Info</div>
@@ -743,6 +778,11 @@ body.dark .login-input { background: #16152a; border-color: rgba(123,114,216,0.2
     <!-- Page 6: Booking Overview -->
     <div class="page hidden-right" id="pg6">
       <div class="ov-page">
+        <!-- Inline purple header for overview -->
+        <div style="background:var(--purple);padding:14px 24px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 16px rgba(83,58,183,0.18);flex-shrink:0;">
+          <div style="font-family:'DM Serif Display',serif;font-size:18px;color:#fff;letter-spacing:0.04em;">Live Booking <span style="display:inline-block;background:rgba(255,255,255,0.18);border-radius:6px;padding:2px 8px;font-size:11px;font-family:'DM Sans',sans-serif;font-weight:300;margin-left:8px;vertical-align:middle;">STUDIO RESERVATION</span></div>
+          <div onclick="openMB()" style="color:rgba(255,255,255,0.85);font-size:12px;padding:4px 12px;border:1px solid rgba(255,255,255,0.3);border-radius:20px;cursor:pointer;" id="ov-hcount">My Bookings (0)</div>
+        </div>
         <div class="ov-inner">
           <div class="ov-back">
             <button class="back-btn" onclick="goTo(0)">
@@ -750,7 +790,6 @@ body.dark .login-input { background: #16152a; border-color: rgba(123,114,216,0.2
               Back
             </button>
           </div>
-
           <div class="ov-header">
             <div class="ov-title">Booking Overview</div>
           </div>
@@ -788,6 +827,121 @@ body.dark .login-input { background: #16152a; border-color: rgba(123,114,216,0.2
             <div class="ov-detail-list" id="ov-detail-list"></div>
           </div>
 
+        </div>
+      </div>
+    </div>
+
+
+    <!-- Page 7: Office Manual -->
+    <div class="page hidden-right" id="pg7">
+      <div class="om-page">
+        <div class="om-hero">
+
+
+          <div class="om-hero-title">New Office User Guide</div>
+          <div class="om-hero-sub">Onnimart Office Guidelines</div>
+        </div>
+
+        <div class="om-body">
+          <button class="back-btn" onclick="goTo(0)" style="margin-bottom:20px;color:#A84D63;background:#FBEAF0;border-color:#F4C0D1;" onmouseover="this.style.background='#A84D63';this.style.color='#fff';this.style.borderColor='#A84D63'" onmouseout="this.style.background='#FBEAF0';this.style.color='#A84D63';this.style.borderColor='#F4C0D1'">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 12L6 8l4-4"/></svg>
+            Back
+          </button>
+          <div class="om-grid">
+
+            <div class="om-card">
+              <div class="om-card-icon">💡</div>
+              <div class="om-card-title">Electricity & Environment</div>
+              <div class="om-card-rules">
+                <div class="om-rule"><div class="om-rule-dot"></div>Turn off lights when leaving</div>
+                <div class="om-rule"><div class="om-rule-dot"></div>Use air-con only when needed</div>
+                <div class="om-rule"><div class="om-rule-dot"></div>Last to leave — check all power</div>
+                <div class="om-rule"><div class="om-rule-dot"></div>Save electricity</div>
+              </div>
+            </div>
+
+            <div class="om-card">
+              <div class="om-card-icon">🚿</div>
+              <div class="om-card-title">Washroom Usage</div>
+              <div class="om-card-rules">
+                <div class="om-rule"><div class="om-rule-dot"></div>Keep it clean and tidy</div>
+                <div class="om-rule"><div class="om-rule-dot"></div>Turn off lights after use</div>
+                <div class="om-rule"><div class="om-rule-dot"></div>Report issues to management</div>
+              </div>
+            </div>
+
+            <div class="om-card">
+              <div class="om-card-icon">🎬</div>
+              <div class="om-card-title">Live Studio Rules</div>
+              <div class="om-card-rules">
+                <div class="om-rule"><div class="om-rule-dot"></div>Authorised staff only</div>
+                <div class="om-rule"><div class="om-rule-dot"></div>Do not touch equipment</div>
+                <div class="om-rule"><div class="om-rule-dot"></div>Restore to original state after use</div>
+                <div class="om-rule"><div class="om-rule-dot"></div>Clear samples by 12pm next day</div>
+              </div>
+            </div>
+
+            <div class="om-card">
+              <div class="om-card-icon">👥</div>
+              <div class="om-card-title">Guest Policy</div>
+              <div class="om-card-rules">
+                <div class="om-rule"><div class="om-rule-dot"></div>Waiting area only</div>
+                <div class="om-rule"><div class="om-rule-dot"></div>No access to office / studio</div>
+                <div class="om-rule"><div class="om-rule-dot"></div>Must be accompanied by staff</div>
+              </div>
+            </div>
+
+            <div class="om-card">
+              <div class="om-card-icon">🪪</div>
+              <div class="om-card-title">Access Card</div>
+              <div class="om-card-rules">
+                <div class="om-rule"><div class="om-rule-dot"></div>Keep it safe at all times</div>
+                <div class="om-rule"><div class="om-rule-dot"></div>Report loss immediately</div>
+                <div class="om-rule"><div class="om-rule-dot"></div>Will be used for lift access</div>
+              </div>
+            </div>
+
+            <div class="om-card">
+              <div class="om-card-icon">👜</div>
+              <div class="om-card-title">Personal Belongings</div>
+              <div class="om-card-rules">
+                <div class="om-rule"><div class="om-rule-dot"></div>Keep valuables with you</div>
+                <div class="om-rule"><div class="om-rule-dot"></div>Do not leave in common areas</div>
+                <div class="om-rule"><div class="om-rule-dot"></div>Company is not liable for loss</div>
+              </div>
+            </div>
+
+            <div class="om-card">
+              <div class="om-card-icon">👟</div>
+              <div class="om-card-title">Shoe Policy</div>
+              <div class="om-card-rules">
+                <div class="om-rule"><div class="om-rule-dot"></div>No shoes allowed inside</div>
+                <div class="om-rule"><div class="om-rule-dot"></div>Enter via PH floor</div>
+                <div class="om-rule"><div class="om-rule-dot"></div>13A for special occasions only</div>
+              </div>
+            </div>
+
+            <div class="om-card">
+              <div class="om-card-icon">☕</div>
+              <div class="om-card-title">Pantry Usage</div>
+              <div class="om-card-rules">
+                <div class="om-rule"><div class="om-rule-dot"></div>13A pantry for visitors only</div>
+                <div class="om-rule"><div class="om-rule-dot"></div>Staff use PH Pantry</div>
+                <div class="om-rule"><div class="om-rule-dot"></div>No food scraps / oil in sink</div>
+              </div>
+            </div>
+
+            <div class="om-card" style="grid-column: 1 / -1;">
+              <div class="om-card-icon">❄️</div>
+              <div class="om-card-title">Fridge Usage</div>
+              <div class="om-card-rules" style="flex-direction:row;flex-wrap:wrap;gap:10px;">
+                <div class="om-rule" style="flex:1;min-width:140px;"><div class="om-rule-dot"></div>Label with name + date</div>
+                <div class="om-rule" style="flex:1;min-width:140px;"><div class="om-rule-dot"></div>Max 2 weeks storage</div>
+                <div class="om-rule" style="flex:1;min-width:140px;"><div class="om-rule-dot"></div>Items past date will be removed</div>
+              </div>
+            </div>
+
+          </div>
         </div>
       </div>
     </div>
@@ -841,7 +995,11 @@ function goTo(n){
   document.getElementById('pg'+prev).className = 'page ' + (n > prev ? 'hidden-left' : 'hidden-right');
   document.getElementById('pg'+n).className = 'page active';
   st.cur = n;
-  if(n === 0 || n === 5 || n === 6){
+  // pg0 = landing (hide purple header, show khaki header)
+  // pg5 = leave form (hide purple header, has own hero)
+  // pg7 = office manual (hide purple header, has own hero)
+  // all others including pg6 overview = show purple header
+  if(n === 0 || n === 5 || n === 7){
     document.body.classList.add('on-landing');
   } else {
     document.body.classList.remove('on-landing');
@@ -1044,6 +1202,8 @@ function updCount(){
   var n = st.bookings.length;
   document.getElementById('hcount').textContent = 'My Bookings ('+n+')';
   document.getElementById('bb').textContent = n+' booking'+(n!==1?'s':'');
+  var ovh = document.getElementById('ov-hcount');
+  if(ovh) ovh.textContent = 'My Bookings ('+n+')';
 }
 
 function showToast(msg){
@@ -1351,10 +1511,10 @@ function doLogin(){
 
 function startOverview(){
   ovMonth = new Date();
+  goTo(6);
   ovRenderCalendar();
   ovRenderLegend();
   ovCloseDetail();
-  goTo(6);
 }
 
 function startLeaveForm(){ goTo(5); }
