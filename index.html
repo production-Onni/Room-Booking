@@ -1327,30 +1327,28 @@ function submitLeave(){
     ? 'Other: ' + (document.getElementById('lf-type-other-text').value.trim() || '-')
     : lfTypeVal;
 
+  var reason = document.getElementById('lf-reason').value.trim() || '-';
+
   var btn = document.getElementById('lf-submit-btn');
   btn.disabled = true;
-  btn.textContent = 'Uploading...';
+  btn.textContent = 'Submitting...';
 
   var LF_URL = 'https://script.google.com/macros/s/AKfycbwrWP8Nr6M9pKXT_6OAtnsZ2NP7lNuJb6NUF1BhLmlaCy_S9Kki2aX05bf_NAp-OidoQA/exec';
 
-  function submitToSheet(fileUrls){
-    btn.textContent = 'Submitting...';
-    fetch(LF_URL, {
-      method: 'POST',
-      redirect: 'follow',
-      headers: { 'Content-Type': 'text/plain' },
-      body: JSON.stringify({
-        person_name: name,
-        date:        lfDateStr,
-        period:      lfPeriodVal,
-        leave_type:  typeVal,
-        reason:      document.getElementById('lf-reason').value.trim() || '-',
-        file_urls:   fileUrls
-      })
-    })
-    .then(function(r){ return r.text(); })
-    .then(function(){ showToast('Leave request submitted! ✓'); })
-    .catch(function(){ showToast('Submitted! (sync pending)'); });
+  function sendToSheet(fileUrls){
+    var url = LF_URL
+      + '?lf=1'
+      + '&person_name=' + encodeURIComponent(name)
+      + '&date='        + encodeURIComponent(lfDateStr)
+      + '&period='      + encodeURIComponent(lfPeriodVal)
+      + '&leave_type='  + encodeURIComponent(typeVal)
+      + '&reason='      + encodeURIComponent(reason)
+      + '&file_urls='   + encodeURIComponent(fileUrls || '');
+
+    fetch(url, { method: 'GET', mode: 'no-cors' })
+      .catch(function(err){ console.warn('LF submit error:', err); });
+
+    showToast('Leave request submitted! ✓');
     clearLeaveForm();
     btn.disabled = false;
     btn.textContent = 'Submit Request ->';
@@ -1358,11 +1356,11 @@ function submitLeave(){
   }
 
   if(lfFiles.length === 0){
-    submitToSheet('');
+    sendToSheet('');
     return;
   }
 
-  // Read all files as base64 then upload to Drive
+  // Upload files to Drive first via POST
   var fileData = [];
   var processed = 0;
   lfFiles.forEach(function(file){
@@ -1377,17 +1375,12 @@ function submitLeave(){
       if(processed === lfFiles.length){
         fetch(LF_URL, {
           method: 'POST',
-          redirect: 'follow',
+          mode: 'no-cors',
           headers: { 'Content-Type': 'text/plain' },
           body: JSON.stringify({ type: 'file_upload', files: fileData })
         })
-        .then(function(r){ return r.json(); })
-        .then(function(data){
-          submitToSheet((data.urls || []).join(', '));
-        })
-        .catch(function(){
-          submitToSheet('Upload failed');
-        });
+        .then(function(){ sendToSheet('(files uploaded)'); })
+        .catch(function(){ sendToSheet(''); });
       }
     };
     reader.readAsDataURL(file);
