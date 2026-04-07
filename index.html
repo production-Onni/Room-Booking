@@ -783,7 +783,7 @@ body.on-landing .raya-lamp   { opacity: 0; }
             <div class="lf-upload-zone" onclick="document.getElementById('lf-file-input').click()">
                 <div class="lf-upload-icon">📎</div>
                 <div class="lf-upload-text"><b>Click to attach files</b></div>
-                <div class="lf-upload-hint">PDF, images, documents · Max 10MB each</div>
+                <div class="lf-upload-hint">PDF, images, documents · Max 2MB each</div>
               </div>
               <input type="file" id="lf-file-input" multiple accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" style="display:none" onchange="handleLfFiles(this.files)">
               <div id="lf-file-list"></div>
@@ -1297,10 +1297,17 @@ function selectType(el, val){
 
 function handleLfFiles(input){
   var newFiles = Array.from(input);
+  var tooBig = [];
   newFiles.forEach(function(f){
-    if(lfFiles.length < 5) lfFiles.push(f);
+    if(f.size > 2 * 1024 * 1024){
+      tooBig.push(f.name);
+    } else if(lfFiles.length < 5){
+      lfFiles.push(f);
+    }
   });
-  input.value = '';
+  if(tooBig.length > 0){
+    showToast('File too large (max 2MB): ' + tooBig.join(', '));
+  }
   renderLfFiles();
 }
 
