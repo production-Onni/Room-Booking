@@ -781,10 +781,12 @@ body.on-landing .raya-lamp   { opacity: 0; }
           <div class="lf-card">
             <div class="lf-card-title">Supporting Documents</div>
             <a href="https://drive.google.com/drive/folders/1d4YKLXb3esNLA5bbcgmAGNn1rzBp_gny" target="_blank" style="display:flex;align-items:center;gap:8px;padding:10px 14px;background:#EAF4EA;border:1.5px solid #4A7C3F;border-radius:10px;color:#2D5A26;font-size:13px;font-weight:500;text-decoration:none;margin-bottom:10px;">
-              <div style="border:1.5px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:8px;">
-                <iframe src='https://script.google.com/macros/s/AKfycbw0R5957ZbPsj80Ww7bMRxiupVQZ8xZmMiJbxb_8X1dOGvuOxaGnITHUUgMrbCVBzZs7Q/exec' style="width:100%;height:300px;border:none;display:block;"></iframe>
+              <div class="lf-upload-zone" onclick="document.getElementById('lf-file-input').click()">
+                <div class="lf-upload-icon">📎</div>
+                <div class="lf-upload-text"><b>Click to attach files</b></div>
+                <div class="lf-upload-hint">PDF, images, documents · Max 10MB each</div>
               </div>
-              <input type="hidden" id="lf-drive-link" value="">
+              <input type="file" id="lf-file-input" multiple accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" style="display:none" onchange="handleLfFiles(this.files)">
               <div id="lf-file-list"></div>
           </div>
 
@@ -1339,32 +1341,72 @@ function submitLeave(){
     ? 'Other: ' + (document.getElementById('lf-type-other-text').value.trim() || '-')
     : lfTypeVal;
 
-  var reason    = document.getElementById('lf-reason').value.trim() || '-';
-  var driveLink = document.getElementById('lf-drive-link') ? document.getElementById('lf-drive-link').value.trim() : '';
-
+  var reason = document.getElementById('lf-reason').value.trim() || '-';
   var btn = document.getElementById('lf-submit-btn');
   btn.disabled = true;
-  btn.textContent = 'Submitting...';
+  btn.textContent = 'Uploading...';
 
   var LF_URL = 'https://script.google.com/macros/s/AKfycbwrWP8Nr6M9pKXT_6OAtnsZ2NP7lNuJb6NUF1BhLmlaCy_S9Kki2aX05bf_NAp-OidoQA/exec';
+  var WORKER = 'https://onni-upload.production-c35.workers.dev';
 
-  var url = LF_URL
-    + '?lf=1'
-    + '&person_name=' + encodeURIComponent(name)
-    + '&date='        + encodeURIComponent(lfDateStr)
-    + '&period='      + encodeURIComponent(lfPeriodVal)
-    + '&leave_type='  + encodeURIComponent(typeVal)
-    + '&reason='      + encodeURIComponent(reason)
-    + '&file_urls='   + encodeURIComponent(driveLink || '');
+  function sendToSheet(fileUrls){
+    btn.textContent = 'Submitting...';
+    var url = LF_URL
+      + '?lf=1'
+      + '&person_name=' + encodeURIComponent(name)
+      + '&date='        + encodeURIComponent(lfDateStr)
+      + '&period='      + encodeURIComponent(lfPeriodVal)
+      + '&leave_type='  + encodeURIComponent(typeVal)
+      + '&reason='      + encodeURIComponent(reason)
+      + '&file_urls='   + encodeURIComponent(fileUrls || '');
+    fetch(url, { method: 'GET', mode: 'no-cors' })
+      .catch(function(err){ console.warn('LF submit error:', err); });
+    showToast('Leave request submitted! ✓');
+    clearLeaveForm();
+    btn.disabled = false;
+    btn.textContent = 'Submit Request ->';
+    goTo(0);
+  }
 
-  fetch(url, { method: 'GET', mode: 'no-cors' })
-    .catch(function(err){ console.warn('LF submit error:', err); });
+  if(lfFiles.length === 0){
+    sendToSheet('');
+    return;
+  }
 
-  showToast('Leave request submitted! ✓');
-  clearLeaveForm();
-  btn.disabled = false;
-  btn.textContent = 'Submit Request ->';
-  goTo(0);
+  // Read files as base64 then upload via Cloudflare Worker
+  var fileData = [];
+  var processed = 0;
+  btn.textContent = 'Reading files...';
+
+  lfFiles.forEach(function(file){
+    var reader = new FileReader();
+    reader.onload = function(e){
+      fileData.push({
+        name: file.name,
+        mimeType: file.type || 'application/octet-stream',
+        base64: e.target.result.split(',')[1]
+      });
+      processed++;
+      if(processed === lfFiles.length){
+        btn.textContent = 'Uploading files...';
+        fetch(WORKER, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ type: 'file_upload', files: fileData })
+        })
+        .then(function(r){ return r.json(); })
+        .then(function(data){
+          var urls = (data.urls || []).join(', ');
+          sendToSheet(urls);
+        })
+        .catch(function(err){
+          console.warn('Upload error:', err);
+          sendToSheet('Upload failed');
+        });
+      }
+    };
+    reader.readAsDataURL(file);
+  });
 }
 
 
