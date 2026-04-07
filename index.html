@@ -780,6 +780,9 @@ body.on-landing .raya-lamp   { opacity: 0; }
           <!-- Supporting docs -->
           <div class="lf-card">
             <div class="lf-card-title">Supporting Documents</div>
+            <a href="https://drive.google.com/drive/folders/1d4YKLXb3esNLA5bbcgmAGNn1rzBp_gny" target="_blank" style="display:flex;align-items:center;gap:8px;padding:10px 14px;background:#EAF4EA;border:1.5px solid #4A7C3F;border-radius:10px;color:#2D5A26;font-size:13px;font-weight:500;text-decoration:none;margin-bottom:10px;">
+              📁 <span>Upload files to Google Drive <span style="font-weight:400;color:#4A7C3F;">→ Leave Documents folder</span></span>
+            </a>
             <div class="lf-upload-zone" onclick="document.getElementById('lf-file-input').click()">
               <div class="lf-upload-icon">📎</div>
               <div class="lf-upload-text"><b>Click to upload</b></div>
@@ -1328,6 +1331,7 @@ function submitLeave(){
     : lfTypeVal;
 
   var reason = document.getElementById('lf-reason').value.trim() || '-';
+  var driveLink = document.getElementById('lf-drive-link') ? document.getElementById('lf-drive-link').value.trim() : '';
 
   var btn = document.getElementById('lf-submit-btn');
   btn.disabled = true;
@@ -1343,7 +1347,7 @@ function submitLeave(){
       + '&period='      + encodeURIComponent(lfPeriodVal)
       + '&leave_type='  + encodeURIComponent(typeVal)
       + '&reason='      + encodeURIComponent(reason)
-      + '&file_urls='   + encodeURIComponent(fileUrls || '');
+      + '&file_urls='   + encodeURIComponent(driveLink || fileUrls || '');
 
     fetch(url, { method: 'GET', mode: 'no-cors' })
       .catch(function(err){ console.warn('LF submit error:', err); });
