@@ -1330,7 +1330,7 @@ function submitLeave(){
     ? 'Other: ' + (document.getElementById('lf-type-other-text').value.trim() || '-')
     : lfTypeVal;
 
-  var reason = document.getElementById('lf-reason').value.trim() || '-';
+  var reason    = document.getElementById('lf-reason').value.trim() || '-';
   var driveLink = document.getElementById('lf-drive-link') ? document.getElementById('lf-drive-link').value.trim() : '';
 
   var btn = document.getElementById('lf-submit-btn');
@@ -1339,57 +1339,25 @@ function submitLeave(){
 
   var LF_URL = 'https://script.google.com/macros/s/AKfycbwrWP8Nr6M9pKXT_6OAtnsZ2NP7lNuJb6NUF1BhLmlaCy_S9Kki2aX05bf_NAp-OidoQA/exec';
 
-  function sendToSheet(fileUrls){
-    var url = LF_URL
-      + '?lf=1'
-      + '&person_name=' + encodeURIComponent(name)
-      + '&date='        + encodeURIComponent(lfDateStr)
-      + '&period='      + encodeURIComponent(lfPeriodVal)
-      + '&leave_type='  + encodeURIComponent(typeVal)
-      + '&reason='      + encodeURIComponent(reason)
-      + '&file_urls='   + encodeURIComponent(driveLink || fileUrls || '');
+  var url = LF_URL
+    + '?lf=1'
+    + '&person_name=' + encodeURIComponent(name)
+    + '&date='        + encodeURIComponent(lfDateStr)
+    + '&period='      + encodeURIComponent(lfPeriodVal)
+    + '&leave_type='  + encodeURIComponent(typeVal)
+    + '&reason='      + encodeURIComponent(reason)
+    + '&file_urls='   + encodeURIComponent(driveLink || '');
 
-    fetch(url, { method: 'GET', mode: 'no-cors' })
-      .catch(function(err){ console.warn('LF submit error:', err); });
+  fetch(url, { method: 'GET', mode: 'no-cors' })
+    .catch(function(err){ console.warn('LF submit error:', err); });
 
-    showToast('Leave request submitted! ✓');
-    clearLeaveForm();
-    btn.disabled = false;
-    btn.textContent = 'Submit Request ->';
-    goTo(0);
-  }
-
-  if(lfFiles.length === 0){
-    sendToSheet('');
-    return;
-  }
-
-  // Upload files to Drive first via POST
-  var fileData = [];
-  var processed = 0;
-  lfFiles.forEach(function(file){
-    var reader = new FileReader();
-    reader.onload = function(e){
-      fileData.push({
-        name: file.name,
-        mimeType: file.type || 'application/octet-stream',
-        base64: e.target.result.split(',')[1]
-      });
-      processed++;
-      if(processed === lfFiles.length){
-        fetch(LF_URL, {
-          method: 'POST',
-          mode: 'no-cors',
-          headers: { 'Content-Type': 'text/plain' },
-          body: JSON.stringify({ type: 'file_upload', files: fileData })
-        })
-        .then(function(){ sendToSheet('(files uploaded)'); })
-        .catch(function(){ sendToSheet(''); });
-      }
-    };
-    reader.readAsDataURL(file);
-  });
+  showToast('Leave request submitted! ✓');
+  clearLeaveForm();
+  btn.disabled = false;
+  btn.textContent = 'Submit Request ->';
+  goTo(0);
 }
+
 
 function lfChMonth(d){
   lfCalMonth = new Date(lfCalMonth.getFullYear(), lfCalMonth.getMonth()+d, 1);
