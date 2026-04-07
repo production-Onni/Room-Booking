@@ -463,6 +463,32 @@ body.dark .om-rule { color: #b090a0; }
 body.dark .om-rule-dot { background: #e08090; }
 
 
+
+
+
+.dw-zong-l { position: fixed; top: 56px; left: 16px; pointer-events: none; z-index: 996; }
+.dw-zong-r { position: fixed; top: 56px; right: 16px; pointer-events: none; z-index: 996; }
+
+
+/* ── Raya Decorations ─────────────────────────────────── */
+.raya-corner { position: fixed; pointer-events: none; z-index: 997; }
+.raya-tl { top: 0; left: 0; }
+.raya-tr { top: 0; right: 0; transform: scaleX(-1); }
+.raya-bl { bottom: 60px; left: 0; transform: scaleY(-1); }
+.raya-br { bottom: 60px; right: 0; transform: scale(-1,-1); }
+
+.raya-lamp { position: fixed; pointer-events: none; z-index: 997; }
+.raya-lamp-l { top: 60px; left: 18px; }
+.raya-lamp-r { top: 60px; right: 18px; }
+
+body.on-landing .raya-corner { opacity: 0.35; }
+body.on-landing .raya-lamp   { opacity: 0; }
+
+@keyframes sway { 0%,100%{transform:rotate(-4deg)}50%{transform:rotate(4deg)} }
+@keyframes sway-r { 0%,100%{transform:scaleX(-1) rotate(-4deg)}50%{transform:scaleX(-1) rotate(4deg)} }
+.lamp-body { transform-origin: top center; animation: sway 3s ease-in-out infinite; }
+.lamp-body-r { transform-origin: top center; animation: sway-r 3s ease-in-out infinite 0.5s; }
+
 </style>
 </head>
 <body class="on-landing">
@@ -1138,23 +1164,25 @@ function doSubmit(name, note, dateStr, btn){
   btn.textContent = 'Confirming...';
   var b = {id:Date.now(), room:st.room, date:dateStr, time:st.time, name:name, note:note, status:'pending'};
 
-  // Send via EmailJS
-  emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
-    room_name:   b.room.name,
-    date:        b.date,
-    time:        b.time,
-    person_name: b.name,
-    notes:       b.note || '-'
-  })
-  .then(function(){
-    showToast('Booking confirmed! Email sent ✓');
-    finalise(b);
-  })
-  .catch(function(err){
-    console.warn('EmailJS error:', err);
-    showToast('Booking saved. Email failed - check console.');
-    finalise(b);
-  });
+  // Write to Google Sheets via Apps Script
+  var year = b.date ? new Date().getFullYear() : '';
+  var startHourNum = parseInt(b.time.split(':')[0]);
+  var endHourNum = startHourNum + 2;
+  var startISO = b.date + 'T' + String(startHourNum).padStart(2,'0') + ':00:00';
+  var endISO   = b.date + 'T' + String(endHourNum).padStart(2,'0') + ':00:00';
+
+  fetch('https://script.google.com/macros/s/AKfycbwrWP8Nr6M9pKXT_6OAtnsZ2NP7lNuJb6NUF1BhLmlaCy_S9Kki2aX05bf_NAp-OidoQA/exec?room_name=' + encodeURIComponent(b.room.name)
+    + '&date=' + encodeURIComponent(b.date)
+    + '&time=' + encodeURIComponent(b.time)
+    + '&start_datetime=' + encodeURIComponent(startISO)
+    + '&end_datetime=' + encodeURIComponent(endISO)
+    + '&person_name=' + encodeURIComponent(b.name), {
+    method: 'GET',
+    mode: 'no-cors'
+  }).catch(function(err){ console.warn('Apps Script error:', err); });
+
+  showToast('Booking confirmed! ✓');
+  finalise(b);
 }
 
 function finalise(b){
@@ -1646,94 +1674,95 @@ renderRooms();
 lfRenderCal(); renderCal(); updCount(); renderBookings();
 </script>
 
+
+
+
+<!-- My Bookings Modal -->
+<div class="mb-overlay" id="mb-overlay" onclick="closeMB()"></div>
+<div class="mb-panel" id="mb-panel">
+  <div class="mb-panel-hdr">
+    <div class="mb-panel-title">My Bookings</div>
+    <button class="mb-panel-close" onclick="closeMB()">&#x2715;</button>
+  </div>
+  <div class="mb-panel-body" id="mb-body">
+    <div class="mb-empty">No bookings yet</div>
+  </div>
+</div>
+
+
+
+
+
+
+
 <div class="raya-corner raya-tl"><svg width="110" height="110" viewBox="0 0 110 110" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <!-- Main leaf sprays -->
   <path d="M0 0 Q30 20 10 55" stroke="#C8922A" stroke-width="2" fill="none" opacity="0.7"/>
   <path d="M0 0 Q50 15 35 50" stroke="#C8922A" stroke-width="1.5" fill="none" opacity="0.6"/>
   <path d="M0 0 Q20 40 5 70" stroke="#8B6914" stroke-width="1" fill="none" opacity="0.5"/>
-  <!-- Leaf shapes -->
   <ellipse cx="18" cy="42" rx="7" ry="14" fill="#2D7A3A" opacity="0.75" transform="rotate(-30 18 42)"/>
   <ellipse cx="32" cy="35" rx="6" ry="12" fill="#3A9648" opacity="0.65" transform="rotate(-50 32 35)"/>
   <ellipse cx="8" cy="58" rx="5" ry="10" fill="#2D7A3A" opacity="0.55" transform="rotate(-15 8 58)"/>
-  <!-- Ketupat diamond -->
   <path d="M55 8 L68 20 L55 32 L42 20 Z" fill="#C8922A" opacity="0.85"/>
   <path d="M55 11 L65 20 L55 29 L45 20 Z" fill="none" stroke="#FFF5DC" stroke-width="0.8" opacity="0.6"/>
   <line x1="55" y1="11" x2="55" y2="29" stroke="#FFF5DC" stroke-width="0.5" opacity="0.5"/>
   <line x1="45" y1="20" x2="65" y2="20" stroke="#FFF5DC" stroke-width="0.5" opacity="0.5"/>
-  <!-- Small star motif -->
   <circle cx="80" cy="15" r="3" fill="#C8922A" opacity="0.6"/>
   <circle cx="80" cy="15" r="1.5" fill="#FFF5DC" opacity="0.8"/>
   <circle cx="92" cy="28" r="2" fill="#C8922A" opacity="0.5"/>
-  <!-- Floral dots -->
   <circle cx="22" cy="18" r="2" fill="#C8922A" opacity="0.7"/>
   <circle cx="35" cy="12" r="1.5" fill="#8B6914" opacity="0.6"/>
   <circle cx="48" cy="8" r="1.5" fill="#C8922A" opacity="0.5"/>
 </svg></div>
 <div class="raya-corner raya-tr"><svg width="110" height="110" viewBox="0 0 110 110" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <!-- Main leaf sprays -->
   <path d="M0 0 Q30 20 10 55" stroke="#C8922A" stroke-width="2" fill="none" opacity="0.7"/>
   <path d="M0 0 Q50 15 35 50" stroke="#C8922A" stroke-width="1.5" fill="none" opacity="0.6"/>
   <path d="M0 0 Q20 40 5 70" stroke="#8B6914" stroke-width="1" fill="none" opacity="0.5"/>
-  <!-- Leaf shapes -->
   <ellipse cx="18" cy="42" rx="7" ry="14" fill="#2D7A3A" opacity="0.75" transform="rotate(-30 18 42)"/>
   <ellipse cx="32" cy="35" rx="6" ry="12" fill="#3A9648" opacity="0.65" transform="rotate(-50 32 35)"/>
   <ellipse cx="8" cy="58" rx="5" ry="10" fill="#2D7A3A" opacity="0.55" transform="rotate(-15 8 58)"/>
-  <!-- Ketupat diamond -->
   <path d="M55 8 L68 20 L55 32 L42 20 Z" fill="#C8922A" opacity="0.85"/>
   <path d="M55 11 L65 20 L55 29 L45 20 Z" fill="none" stroke="#FFF5DC" stroke-width="0.8" opacity="0.6"/>
   <line x1="55" y1="11" x2="55" y2="29" stroke="#FFF5DC" stroke-width="0.5" opacity="0.5"/>
   <line x1="45" y1="20" x2="65" y2="20" stroke="#FFF5DC" stroke-width="0.5" opacity="0.5"/>
-  <!-- Small star motif -->
   <circle cx="80" cy="15" r="3" fill="#C8922A" opacity="0.6"/>
   <circle cx="80" cy="15" r="1.5" fill="#FFF5DC" opacity="0.8"/>
   <circle cx="92" cy="28" r="2" fill="#C8922A" opacity="0.5"/>
-  <!-- Floral dots -->
   <circle cx="22" cy="18" r="2" fill="#C8922A" opacity="0.7"/>
   <circle cx="35" cy="12" r="1.5" fill="#8B6914" opacity="0.6"/>
   <circle cx="48" cy="8" r="1.5" fill="#C8922A" opacity="0.5"/>
 </svg></div>
 <div class="raya-corner raya-bl"><svg width="110" height="110" viewBox="0 0 110 110" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <!-- Main leaf sprays -->
   <path d="M0 0 Q30 20 10 55" stroke="#C8922A" stroke-width="2" fill="none" opacity="0.7"/>
   <path d="M0 0 Q50 15 35 50" stroke="#C8922A" stroke-width="1.5" fill="none" opacity="0.6"/>
   <path d="M0 0 Q20 40 5 70" stroke="#8B6914" stroke-width="1" fill="none" opacity="0.5"/>
-  <!-- Leaf shapes -->
   <ellipse cx="18" cy="42" rx="7" ry="14" fill="#2D7A3A" opacity="0.75" transform="rotate(-30 18 42)"/>
   <ellipse cx="32" cy="35" rx="6" ry="12" fill="#3A9648" opacity="0.65" transform="rotate(-50 32 35)"/>
   <ellipse cx="8" cy="58" rx="5" ry="10" fill="#2D7A3A" opacity="0.55" transform="rotate(-15 8 58)"/>
-  <!-- Ketupat diamond -->
   <path d="M55 8 L68 20 L55 32 L42 20 Z" fill="#C8922A" opacity="0.85"/>
   <path d="M55 11 L65 20 L55 29 L45 20 Z" fill="none" stroke="#FFF5DC" stroke-width="0.8" opacity="0.6"/>
   <line x1="55" y1="11" x2="55" y2="29" stroke="#FFF5DC" stroke-width="0.5" opacity="0.5"/>
   <line x1="45" y1="20" x2="65" y2="20" stroke="#FFF5DC" stroke-width="0.5" opacity="0.5"/>
-  <!-- Small star motif -->
   <circle cx="80" cy="15" r="3" fill="#C8922A" opacity="0.6"/>
   <circle cx="80" cy="15" r="1.5" fill="#FFF5DC" opacity="0.8"/>
   <circle cx="92" cy="28" r="2" fill="#C8922A" opacity="0.5"/>
-  <!-- Floral dots -->
   <circle cx="22" cy="18" r="2" fill="#C8922A" opacity="0.7"/>
   <circle cx="35" cy="12" r="1.5" fill="#8B6914" opacity="0.6"/>
   <circle cx="48" cy="8" r="1.5" fill="#C8922A" opacity="0.5"/>
 </svg></div>
 <div class="raya-corner raya-br"><svg width="110" height="110" viewBox="0 0 110 110" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <!-- Main leaf sprays -->
   <path d="M0 0 Q30 20 10 55" stroke="#C8922A" stroke-width="2" fill="none" opacity="0.7"/>
   <path d="M0 0 Q50 15 35 50" stroke="#C8922A" stroke-width="1.5" fill="none" opacity="0.6"/>
   <path d="M0 0 Q20 40 5 70" stroke="#8B6914" stroke-width="1" fill="none" opacity="0.5"/>
-  <!-- Leaf shapes -->
   <ellipse cx="18" cy="42" rx="7" ry="14" fill="#2D7A3A" opacity="0.75" transform="rotate(-30 18 42)"/>
   <ellipse cx="32" cy="35" rx="6" ry="12" fill="#3A9648" opacity="0.65" transform="rotate(-50 32 35)"/>
   <ellipse cx="8" cy="58" rx="5" ry="10" fill="#2D7A3A" opacity="0.55" transform="rotate(-15 8 58)"/>
-  <!-- Ketupat diamond -->
   <path d="M55 8 L68 20 L55 32 L42 20 Z" fill="#C8922A" opacity="0.85"/>
   <path d="M55 11 L65 20 L55 29 L45 20 Z" fill="none" stroke="#FFF5DC" stroke-width="0.8" opacity="0.6"/>
   <line x1="55" y1="11" x2="55" y2="29" stroke="#FFF5DC" stroke-width="0.5" opacity="0.5"/>
   <line x1="45" y1="20" x2="65" y2="20" stroke="#FFF5DC" stroke-width="0.5" opacity="0.5"/>
-  <!-- Small star motif -->
   <circle cx="80" cy="15" r="3" fill="#C8922A" opacity="0.6"/>
   <circle cx="80" cy="15" r="1.5" fill="#FFF5DC" opacity="0.8"/>
   <circle cx="92" cy="28" r="2" fill="#C8922A" opacity="0.5"/>
-  <!-- Floral dots -->
   <circle cx="22" cy="18" r="2" fill="#C8922A" opacity="0.7"/>
   <circle cx="35" cy="12" r="1.5" fill="#8B6914" opacity="0.6"/>
   <circle cx="48" cy="8" r="1.5" fill="#C8922A" opacity="0.5"/>
@@ -1747,9 +1776,7 @@ lfRenderCal(); renderCal(); updCount(); renderBookings();
     <path d="M16 28 L16 52" stroke="#FFF5DC" stroke-width="0.6" opacity="0.4"/>
     <path d="M24 28 Q25 42 23 52" stroke="#FFF5DC" stroke-width="0.6" opacity="0.4"/>
     <ellipse cx="16" cy="57" rx="9" ry="4" fill="#C8922A" opacity="0.9"/>
-    <!-- glow -->
     <ellipse cx="16" cy="42" rx="6" ry="10" fill="#FFF0A0" opacity="0.25"/>
-    <!-- tassel -->
     <line x1="13" y1="61" x2="11" y2="75" stroke="#C8922A" stroke-width="1" opacity="0.7"/>
     <line x1="16" y1="61" x2="16" y2="77" stroke="#C8922A" stroke-width="1" opacity="0.7"/>
     <line x1="19" y1="61" x2="21" y2="75" stroke="#C8922A" stroke-width="1" opacity="0.7"/>
@@ -1770,19 +1797,6 @@ lfRenderCal(); renderCal(); updCount(); renderBookings();
     <line x1="19" y1="61" x2="21" y2="75" stroke="#C8922A" stroke-width="1" opacity="0.7"/>
   </g>
 </svg></div>
-
-
-<!-- My Bookings Modal -->
-<div class="mb-overlay" id="mb-overlay" onclick="closeMB()"></div>
-<div class="mb-panel" id="mb-panel">
-  <div class="mb-panel-hdr">
-    <div class="mb-panel-title">My Bookings</div>
-    <button class="mb-panel-close" onclick="closeMB()">&#x2715;</button>
-  </div>
-  <div class="mb-panel-body" id="mb-body">
-    <div class="mb-empty">No bookings yet</div>
-  </div>
-</div>
 
 </body>
 </html>
