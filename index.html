@@ -1164,12 +1164,14 @@ function doSubmit(name, note, dateStr, btn){
   btn.textContent = 'Confirming...';
   var b = {id:Date.now(), room:st.room, date:dateStr, time:st.time, name:name, note:note, status:'pending'};
 
-  // Write to Google Sheets via Apps Script
-  var year = b.date ? new Date().getFullYear() : '';
-  var startHourNum = parseInt(b.time.split(':')[0]);
-  var endHourNum = startHourNum + 2;
-  var startISO = b.date + 'T' + String(startHourNum).padStart(2,'0') + ':00:00';
-  var endISO   = b.date + 'T' + String(endHourNum).padStart(2,'0') + ':00:00';
+  // Build start/end datetime from actual date object
+  var startHourNum = parseInt(st.time.split(':')[0]);
+  var endHourNum   = startHourNum + 2;
+  var yr  = st.date.getFullYear();
+  var mo  = String(st.date.getMonth()+1).padStart(2,'0');
+  var dy  = String(st.date.getDate()).padStart(2,'0');
+  var startISO = yr+'-'+mo+'-'+dy+'T'+String(startHourNum).padStart(2,'0')+':00:00';
+  var endISO   = yr+'-'+mo+'-'+dy+'T'+String(endHourNum).padStart(2,'0')+':00:00';
 
   fetch('https://script.google.com/macros/s/AKfycbwrWP8Nr6M9pKXT_6OAtnsZ2NP7lNuJb6NUF1BhLmlaCy_S9Kki2aX05bf_NAp-OidoQA/exec?room_name=' + encodeURIComponent(b.room.name)
     + '&date=' + encodeURIComponent(b.date)
@@ -1326,37 +1328,68 @@ function submitLeave(){
     : lfTypeVal;
 
   var btn = document.getElementById('lf-submit-btn');
-  btn.disabled = true; btn.textContent = 'Submitting...';
+  btn.disabled = true;
+  btn.textContent = 'Uploading...';
 
-  // Write to Google Sheets via Apps Script
-  var LF_WEB_APP = 'https://script.google.com/macros/s/AKfycbwrWP8Nr6M9pKXT_6OAtnsZ2NP7lNuJb6NUF1BhLmlaCy_S9Kki2aX05bf_NAp-OidoQA/exec';
-  fetch(LF_WEB_APP, {
-    method: 'POST',
-    mode: 'no-cors',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      person_name: name,
-      date:        lfDateStr,
-      period:      lfPeriodVal,
-      leave_type:  typeVal,
-      reason:      document.getElementById('lf-reason').value.trim() || '-'
+  var LF_URL = 'https://script.google.com/macros/s/AKfycbwrWP8Nr6M9pKXT_6OAtnsZ2NP7lNuJb6NUF1BhLmlaCy_S9Kki2aX05bf_NAp-OidoQA/exec';
+
+  function submitToSheet(fileUrls){
+    btn.textContent = 'Submitting...';
+    fetch(LF_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        person_name: name,
+        date:        lfDateStr,
+        period:      lfPeriodVal,
+        leave_type:  typeVal,
+        reason:      document.getElementById('lf-reason').value.trim() || '-',
+        file_urls:   fileUrls
+      })
     })
-  })
-  .then(function(){ showToast('Leave request submitted! ✓'); })
-  .catch(function(err){ console.warn('Apps Script error:', err); showToast('Submitted! (sync pending)'); });
+    .then(function(){ showToast('Leave request submitted! ✓'); })
+    .catch(function(){ showToast('Submitted! (sync pending)'); });
+    clearLeaveForm();
+    btn.disabled = false;
+    btn.textContent = 'Submit Request ->';
+    goTo(0);
+  }
 
-  clearLeaveForm();
-  btn.disabled=false;
-  btn.textContent='Submit Request ->';
-  goTo(0);
+  if(lfFiles.length === 0){
+    submitToSheet('');
+    return;
+  }
+
+  // Read all files as base64 then upload to Drive
+  var fileData = [];
+  var processed = 0;
+  lfFiles.forEach(function(file){
+    var reader = new FileReader();
+    reader.onload = function(e){
+      fileData.push({
+        name: file.name,
+        mimeType: file.type || 'application/octet-stream',
+        base64: e.target.result.split(',')[1]
+      });
+      processed++;
+      if(processed === lfFiles.length){
+        fetch(LF_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ type: 'file_upload', files: fileData })
+        })
+        .then(function(r){ return r.json(); })
+        .then(function(data){
+          submitToSheet((data.urls || []).join(', '));
+        })
+        .catch(function(){
+          submitToSheet('Upload failed');
+        });
+      }
+    };
+    reader.readAsDataURL(file);
+  });
 }
-
-// ── Leave Form Calendar ───────────────────────────────
-var lfCalMonth = new Date();
-var lfDateStart = null;
-var lfDateEnd   = null;
-var lfDateStr   = '';
-var MONTHS_LF   = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 
 function lfChMonth(d){
   lfCalMonth = new Date(lfCalMonth.getFullYear(), lfCalMonth.getMonth()+d, 1);
@@ -1669,6 +1702,14 @@ function cancelFromMB(id){
   save(); updCount(); renderBookings(); renderMB();
   showToast('Booking cancelled');
 }
+
+// ── Leave Form Calendar vars ──────────────────────────
+var lfCalMonth = new Date();
+var lfDateStart = null;
+var lfDateEnd   = null;
+var lfDateStr   = '';
+var MONTHS_LF   = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
 
 renderRooms();
 lfRenderCal(); renderCal(); updCount(); renderBookings();
