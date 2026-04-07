@@ -1260,6 +1260,7 @@ function toggleDark(){
 try{ if(localStorage.getItem('darkMode')==='1'){ document.body.classList.add('dark'); document.getElementById('dark-toggle').textContent='☀️'; } }catch(e){}
 
 
+var lfFiles = [];
 var lfPeriodVal = '';
 var lfTypeVal   = '';
 
@@ -1294,10 +1295,9 @@ function selectType(el, val){
   lfTypeVal = val;
 }
 
-var lfFiles = [];
 
 function handleLfFiles(input){
-  var newFiles = Array.from(input.files);
+  var newFiles = Array.from(input);
   newFiles.forEach(function(f){
     if(lfFiles.length < 5) lfFiles.push(f);
   });
