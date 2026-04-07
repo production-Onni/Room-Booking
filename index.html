@@ -1337,7 +1337,8 @@ function submitLeave(){
     btn.textContent = 'Submitting...';
     fetch(LF_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      redirect: 'follow',
+      headers: { 'Content-Type': 'text/plain' },
       body: JSON.stringify({
         person_name: name,
         date:        lfDateStr,
@@ -1347,6 +1348,7 @@ function submitLeave(){
         file_urls:   fileUrls
       })
     })
+    .then(function(r){ return r.text(); })
     .then(function(){ showToast('Leave request submitted! ✓'); })
     .catch(function(){ showToast('Submitted! (sync pending)'); });
     clearLeaveForm();
@@ -1375,7 +1377,8 @@ function submitLeave(){
       if(processed === lfFiles.length){
         fetch(LF_URL, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          redirect: 'follow',
+          headers: { 'Content-Type': 'text/plain' },
           body: JSON.stringify({ type: 'file_upload', files: fileData })
         })
         .then(function(r){ return r.json(); })
