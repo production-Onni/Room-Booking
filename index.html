@@ -1353,7 +1353,7 @@ function submitLeave(){
   btn.textContent = 'Uploading...';
 
   var LF_URL = 'https://script.google.com/macros/s/AKfycbwrWP8Nr6M9pKXT_6OAtnsZ2NP7lNuJb6NUF1BhLmlaCy_S9Kki2aX05bf_NAp-OidoQA/exec';
-  var WORKER = 'https://onni-upload.production-c35.workers.dev';
+  var WORKER = LF_URL;
 
   function sendToSheet(fileUrls){
     btn.textContent = 'Submitting...';
@@ -1397,7 +1397,7 @@ function submitLeave(){
         btn.textContent = 'Uploading files...';
         fetch(WORKER, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'text/plain' },
           body: JSON.stringify({ type: 'file_upload', files: fileData })
         })
         .then(function(r){ return r.json(); })
