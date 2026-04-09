@@ -1395,20 +1395,20 @@ function submitLeave(){
       processed++;
       if(processed === lfFiles.length){
         btn.textContent = 'Uploading files...';
-        fetch(WORKER, {
-          method: 'POST',
-          headers: { 'Content-Type': 'text/plain' },
-          body: JSON.stringify({ type: 'file_upload', files: fileData })
-        })
-        .then(function(r){ return r.json(); })
-        .then(function(data){
-          var urls = (data.urls || []).join(', ');
-          sendToSheet(urls);
-        })
-        .catch(function(err){
-          console.warn('Upload error:', err);
-          sendToSheet('Upload failed');
-        });
+        var urls = [];
+        var uploadNext = function(i){
+          if(i >= fileData.length){ sendToSheet(urls.join(', ')); return; }
+          var f = fileData[i];
+          var url = LF_URL + '?action=upload'
+            + '&base64=' + encodeURIComponent(f.base64)
+            + '&mimeType=' + encodeURIComponent(f.mimeType)
+            + '&fileName=' + encodeURIComponent(f.name);
+          fetch(url)
+            .then(function(r){ return r.json(); })
+            .then(function(data){ if(data.url) urls.push(data.url); uploadNext(i+1); })
+            .catch(function(){ uploadNext(i+1); });
+        };
+        uploadNext(0);
       }
     };
     reader.readAsDataURL(file);
