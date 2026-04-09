@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -869,7 +869,6 @@ body.dark .om-rule-dot { background: #e08090; }
                   <th>Photo / Doc</th>
                   <th>Submitted</th>
                   <th>Status</th>
-                  <th>Remove</th>
                 </tr></thead>
                 <tbody id="al-tbody"></tbody>
               </table>
@@ -966,43 +965,30 @@ function renderRooms(){
 }
 function selRoom(id){ st.room=rooms.find(function(r){ return r.id===id; }); st.date=null; st.time=null; document.getElementById('pg2-sub').textContent='Picking date for '+st.room.name; renderCal(); goTo(2); }
 function renderCal(){
-  var m=st.month;
-  document.getElementById('cal-lbl').textContent=MONTHS[m.getMonth()]+' '+m.getFullYear();
-  var first=new Date(m.getFullYear(),m.getMonth(),1).getDay();
-  var days=new Date(m.getFullYear(),m.getMonth()+1,0).getDate();
-  var today=new Date();
+  var m=st.month; document.getElementById('cal-lbl').textContent=MONTHS[m.getMonth()]+' '+m.getFullYear();
+  var first=new Date(m.getFullYear(),m.getMonth(),1).getDay(); var days=new Date(m.getFullYear(),m.getMonth()+1,0).getDate(); var today=new Date();
   var html='';
   for(var i=0;i<first;i++) html+='<div class="cal-cw"><div class="cc empty"></div></div>';
   for(var d=1;d<=days;d++){
-    var dt=new Date(m.getFullYear(),m.getMonth(),d);
-    var isPast=dt<new Date(today.getFullYear(),today.getMonth(),today.getDate());
-    var isToday=dt.toDateString()===today.toDateString();
-    var isSel=st.date&&st.date.toDateString()===dt.toDateString();
-    var cls='cc'+(isPast?' past':'')+(isToday?' today':'')+(isSel?' selected':'');
-    html+=`
-      <div class="cal-cw">
-        <div class="${cls}"${isPast ? '' : ` onclick="selDate('${dt.toISOString()}')"`}>${d}</div>
-      </div>
-    `;
+    var dt=new Date(m.getFullYear(),m.getMonth(),d); var isPast=dt<new Date(today.getFullYear(),today.getMonth(),today.getDate()); var isToday=dt.toDateString()===today.toDateString(); var isSel=st.date&&st.date.toDateString()===dt.toDateString();
+    var cls='cc'+(isPast?' past':'')+(isToday?' today':'')+(isSel?' selected':''); var click=isPast?'':' onclick="selDate(''+dt.toISOString()+'')"';
+    html+='<div class="cal-cw"><div class="'+cls+'"'+click+'>'+d+'</div></div>';
   }
   document.getElementById('cal-grid').innerHTML=html;
-}function chMonth(d){ st.month=new Date(st.month.getFullYear(),st.month.getMonth()+d,1); renderCal(); }
+}
+function chMonth(d){ st.month=new Date(st.month.getFullYear(),st.month.getMonth()+d,1); renderCal(); }
 function selDate(iso){ st.date=new Date(iso); st.time=null; renderCal(); var dateStr=st.date.toLocaleDateString('en-GB',{month:'long',day:'numeric'}); document.getElementById('pg3-sub').textContent=st.room.name+' · '+dateStr; renderSlots(); goTo(3); }
 function renderSlots(){
   if(!st.date||!st.room) return;
-  var dateStr=st.date.toLocaleDateString('en-GB',{month:'long',day:'numeric'});
-  var grid=document.getElementById('time-grid');
+  var dateStr=st.date.toLocaleDateString('en-GB',{month:'long',day:'numeric'}); var grid=document.getElementById('time-grid');
   grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:20px;color:var(--text-f);font-size:13px;">Checking availability...</div>';
   var url='https://script.google.com/macros/s/AKfycbwrWP8Nr6M9pKXT_6OAtnsZ2NP7lNuJb6NUF1BhLmlaCy_S9Kki2aX05bf_NAp-OidoQA/exec?action=check&room_name='+encodeURIComponent(st.room.name)+'&date='+encodeURIComponent(dateStr);
   function drawSlots(allBooked){
-    grid.innerHTML=ALL_SLOTS.map(function(t){
-      var isUnavail=allBooked.indexOf(t)!==-1;
-      var cls='ts'+(isUnavail?' unavail':'');
-      return `<div class="${cls}"${isUnavail ? '' : ` onclick="selTime('${t}')"`}>${esc(t)}</div>`;
-    }).join('');
+    grid.innerHTML=ALL_SLOTS.map(function(t){ var isUnavail=allBooked.indexOf(t)!==-1; var cls='ts'+(isUnavail?' unavail':''); var click=isUnavail?'':' onclick="selTime(''+t+'')"'; return '<div class="'+cls+'"'+click+'>'+t+'</div>'; }).join('');
   }
   fetch(url).then(function(r){ return r.json(); }).then(function(data){ var liveBooked=data.booked||[]; var localBooked=getBookedSlots(st.room.id,dateStr); var merged=liveBooked.slice(); localBooked.forEach(function(t){ if(merged.indexOf(t)===-1) merged.push(t); }); drawSlots(merged); }).catch(function(){ drawSlots(getBookedSlots(st.room.id,dateStr)); });
-}function selTime(t){ st.time=t; var dateStr=st.date.toLocaleDateString('en-GB',{month:'long',day:'numeric'}); document.getElementById('sum-icon').className='sum-icon '+st.room.ri; document.getElementById('sum-icon').textContent=st.room.icon; document.getElementById('sum-room').textContent=st.room.name; document.getElementById('sum-meta').textContent=dateStr+'  ·  '+t; goTo(4); }
+}
+function selTime(t){ st.time=t; var dateStr=st.date.toLocaleDateString('en-GB',{month:'long',day:'numeric'}); document.getElementById('sum-icon').className='sum-icon '+st.room.ri; document.getElementById('sum-icon').textContent=st.room.icon; document.getElementById('sum-room').textContent=st.room.name; document.getElementById('sum-meta').textContent=dateStr+'  ·  '+t; goTo(4); }
 function submitBooking(){
   var name=document.getElementById('inp-name').value.trim(); var note=document.getElementById('inp-note').value.trim();
   if(!name){ showToast('Please enter the person in charge'); return; }
@@ -1023,27 +1009,10 @@ function doSubmit(name,note,dateStr,btn){
 function finalise(b){ st.bookings.unshift(b); document.getElementById('inp-name').value=''; document.getElementById('inp-note').value=''; st.room=null; st.date=null; st.time=null; var btn=document.getElementById('btn-sub'); btn.disabled=false; btn.innerHTML='Confirm Booking &#8594;'; save(); updCount(); renderBookings(); setTimeout(function(){ b.status='confirmed'; renderBookings(); save(); },3000); goTo(1); }
 function renderBookings(){
   var list=document.getElementById('blist');
-  if(!st.bookings.length){
-    list.innerHTML=`<div class="empty"><div class="ei">📭</div><div>No bookings yet</div><div style="margin-top:5px;font-size:11px;">Complete the form to make a booking</div></div>`;
-    return;
-  }
-  list.innerHTML=st.bookings.map(function(b){
-    return `
-      <div class="bcard">
-        <div class="btop">
-          <div class="ri ${b.room.ri}" style="width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">${b.room.icon}</div>
-          <div class="binfo">
-            <div class="bname">${esc(b.room.name)} · ${esc(b.time)}</div>
-            <div class="bmeta">${esc(b.date)} · ${esc(b.name)}</div>
-          </div>
-          <span class="sbadge ${b.status==='confirmed'?'sc2':'sp'}">${b.status==='confirmed'?'Confirmed':'Pending'}</span>
-          <button class="cancel-btn" onclick="cancelBooking(${b.id})" title="Cancel">✕</button>
-        </div>
-        ${b.note ? `<div class="bfoot"><div class="bn" title="${esc(b.note)}">Note: ${esc(b.note)}</div></div>` : ''}
-      </div>
-    `;
-  }).join('');
-}function cancelBooking(id){ st.bookings=st.bookings.filter(function(b){ return b.id!==id; }); save(); updCount(); renderBookings(); showToast('Booking cancelled'); }
+  if(!st.bookings.length){ list.innerHTML='<div class="empty"><div class="ei">📭</div><div>No bookings yet</div><div style="margin-top:5px;font-size:11px;">Complete the form to make a booking</div></div>'; return; }
+  list.innerHTML=st.bookings.map(function(b){ return '<div class="bcard"><div class="btop"><div class="ri '+b.room.ri+'" style="width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">'+b.room.icon+'</div><div class="binfo"><div class="bname">'+b.room.name+' · '+b.time+'</div><div class="bmeta">'+b.date+' · '+b.name+'</div></div><span class="sbadge '+(b.status==='confirmed'?'sc2':'sp')+'">'+(b.status==='confirmed'?'Confirmed':'Pending')+'</span><button class="cancel-btn" onclick="cancelBooking('+b.id+')" title="Cancel">✕</button></div>'+(b.note?'<div class="bfoot"><div class="bn" title="'+b.note+'">Note: '+b.note+'</div></div>':'')+'</div>'; }).join('');
+}
+function cancelBooking(id){ st.bookings=st.bookings.filter(function(b){ return b.id!==id; }); save(); updCount(); renderBookings(); showToast('Booking cancelled'); }
 function updCount(){ var n=st.bookings.length; document.getElementById('hcount').textContent='My Bookings ('+n+')'; document.getElementById('bb').textContent=n+' booking'+(n!==1?'s':''); var ovh=document.getElementById('ov-hcount'); if(ovh) ovh.textContent='My Bookings ('+n+')'; }
 function showToast(msg){ var t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(function(){ t.classList.remove('show'); },2800); }
 function goHome(){ st.room=null; st.date=null; st.time=null; goTo(0); }
@@ -1054,55 +1023,28 @@ function startLeaveForm(){ goTo(5); }
 function selectChip(groupId,el,val){ document.getElementById(groupId).querySelectorAll('.lf-chip').forEach(function(c){ c.classList.remove('selected'); }); el.classList.add('selected'); lfPeriodVal=val; }
 function selectType(el,val){ document.getElementById('lf-type-list').querySelectorAll('.lf-type-item,.lf-other-wrap').forEach(function(c){ c.classList.remove('selected'); }); el.classList.add('selected'); lfTypeVal=val; }
 function handleLfFiles(input){ var newFiles=Array.from(input); var tooBig=[]; newFiles.forEach(function(f){ if(f.size>2*1024*1024){ tooBig.push(f.name); } else if(lfFiles.length<5){ lfFiles.push(f); } }); if(tooBig.length>0){ showToast('File too large (max 2MB): '+tooBig.join(', ')); } renderLfFiles(); }
-function renderLfFiles(){
-  var list=document.getElementById('lf-file-list');
-  list.innerHTML=lfFiles.map(function(f,i){
-    var kb=(f.size/1024).toFixed(0);
-    return `
-      <div class="lf-file-chip">
-        📄 ${esc(f.name)}
-        <span style="opacity:0.6;font-size:10px;">(${kb}KB)</span>
-        <button onclick="removeLfFile(${i})">×</button>
-      </div>
-    `;
-  }).join('');
-}function removeLfFile(i){ lfFiles.splice(i,1); renderLfFiles(); }
+function renderLfFiles(){ var list=document.getElementById('lf-file-list'); list.innerHTML=lfFiles.map(function(f,i){ var kb=(f.size/1024).toFixed(0); return '<div class="lf-file-chip">📄 '+f.name+' <span style="opacity:0.6;font-size:10px;">('+kb+'KB)</span><button onclick="removeLfFile('+i+')">×</button></div>'; }).join(''); }
+function removeLfFile(i){ lfFiles.splice(i,1); renderLfFiles(); }
 function clearLeaveForm(){ document.getElementById('lf-name').value=''; lfClearDates(); document.getElementById('lf-reason').value=''; document.getElementById('lf-type-other-text').value=''; document.getElementById('lf-file-list').innerHTML=''; document.getElementById('lf-file-input').value=''; document.getElementById('lf-period-chips').querySelectorAll('.lf-chip').forEach(function(c){ c.classList.remove('selected'); }); document.getElementById('lf-type-list').querySelectorAll('.lf-type-item,.lf-other-wrap').forEach(function(c){ c.classList.remove('selected'); }); lfPeriodVal=''; lfTypeVal=''; lfFiles=[]; }
 var lfCalMonth=new Date(); var lfDateStart=null; var lfDateEnd=null; var lfDateStr='';
 var MONTHS_LF=['January','February','March','April','May','June','July','August','September','October','November','December'];
 function lfChMonth(d){ lfCalMonth=new Date(lfCalMonth.getFullYear(),lfCalMonth.getMonth()+d,1); lfRenderCal(); }
 function lfRenderCal(){
-  var m=lfCalMonth;
-  document.getElementById('lf-cal-lbl').textContent=MONTHS_LF[m.getMonth()]+' '+m.getFullYear();
-  var first=new Date(m.getFullYear(),m.getMonth(),1).getDay();
-  var days=new Date(m.getFullYear(),m.getMonth()+1,0).getDate();
-  var today=new Date();
-  today.setHours(0,0,0,0);
+  var m=lfCalMonth; document.getElementById('lf-cal-lbl').textContent=MONTHS_LF[m.getMonth()]+' '+m.getFullYear();
+  var first=new Date(m.getFullYear(),m.getMonth(),1).getDay(); var days=new Date(m.getFullYear(),m.getMonth()+1,0).getDate(); var today=new Date(); today.setHours(0,0,0,0);
   var html='';
   for(var i=0;i<first;i++) html+='<div class="lf-cal-cw"><div class="lf-cc lf-cc-empty"></div></div>';
   for(var d=1;d<=days;d++){
-    var dt=new Date(m.getFullYear(),m.getMonth(),d);
-    var isPast=dt<today;
-    var isToday=dt.getTime()===today.getTime();
-    var cls='lf-cc';
-    if(isPast) cls+=' lf-cc-past';
-    if(isToday) cls+=' lf-cc-today';
-    if(lfDateStart&&lfDateEnd){
-      var t=dt.getTime(),s=lfDateStart.getTime(),e=lfDateEnd.getTime();
-      if(t===s) cls+=' lf-cc-range-start';
-      else if(t===e) cls+=' lf-cc-range-end';
-      else if(t>s&&t<e) cls+=' lf-cc-in-range';
-    } else if(lfDateStart&&dt.getTime()===lfDateStart.getTime()){
-      cls+=' lf-cc-sel';
-    }
-    html+=`
-      <div class="lf-cal-cw">
-        <div class="${cls}"${isPast ? '' : ` onclick="lfSelDate('${dt.toISOString()}')"`}>${d}</div>
-      </div>
-    `;
+    var dt=new Date(m.getFullYear(),m.getMonth(),d); var isPast=dt<today; var isToday=dt.getTime()===today.getTime(); var cls='lf-cc';
+    if(isPast) cls+=' lf-cc-past'; if(isToday) cls+=' lf-cc-today';
+    if(lfDateStart&&lfDateEnd){ var t=dt.getTime(),s=lfDateStart.getTime(),e=lfDateEnd.getTime(); if(t===s) cls+=' lf-cc-range-start'; else if(t===e) cls+=' lf-cc-range-end'; else if(t>s&&t<e) cls+=' lf-cc-in-range'; }
+    else if(lfDateStart&&dt.getTime()===lfDateStart.getTime()){ cls+=' lf-cc-sel'; }
+    var click=isPast?'':(' onclick="lfSelDate(''+dt.toISOString()+'')"');
+    html+='<div class="lf-cal-cw"><div class="'+cls+'"'+click+'>'+d+'</div></div>';
   }
   document.getElementById('lf-cal-grid').innerHTML=html;
-}function lfSelDate(iso){ var dt=new Date(iso); if(!lfDateStart||(lfDateStart&&lfDateEnd)){ lfDateStart=dt; lfDateEnd=null; } else { if(dt.getTime()===lfDateStart.getTime()){ lfDateStart=null; } else if(dt<lfDateStart){ lfDateEnd=lfDateStart; lfDateStart=dt; } else { lfDateEnd=dt; } } lfUpdateDateDisplay(); lfRenderCal(); }
+}
+function lfSelDate(iso){ var dt=new Date(iso); if(!lfDateStart||(lfDateStart&&lfDateEnd)){ lfDateStart=dt; lfDateEnd=null; } else { if(dt.getTime()===lfDateStart.getTime()){ lfDateStart=null; } else if(dt<lfDateStart){ lfDateEnd=lfDateStart; lfDateStart=dt; } else { lfDateEnd=dt; } } lfUpdateDateDisplay(); lfRenderCal(); }
 function lfUpdateDateDisplay(){ var disp=document.getElementById('lf-date-text'); var clr=document.getElementById('lf-date-clear'); var opts={month:'long',day:'numeric',year:'numeric'}; if(lfDateStart&&lfDateEnd){ lfDateStr=lfDateStart.toLocaleDateString('en-GB',opts)+' - '+lfDateEnd.toLocaleDateString('en-GB',opts); disp.textContent=lfDateStr; disp.className=''; clr.style.display='block'; } else if(lfDateStart){ lfDateStr=lfDateStart.toLocaleDateString('en-GB',opts); disp.textContent=lfDateStr; disp.className=''; clr.style.display='block'; } else { lfDateStr=''; disp.textContent='Tap a date, or tap two dates for a range'; disp.className='lf-date-placeholder'; clr.style.display='none'; } }
 function lfClearDates(){ lfDateStart=null; lfDateEnd=null; lfDateStr=''; lfUpdateDateDisplay(); lfRenderCal(); }
 function togglePass(){ var input=document.getElementById('login-pass'); var icon=document.getElementById('eye-icon'); if(input.type==='password'){ input.type='text'; while(icon.firstChild) icon.removeChild(icon.firstChild); var p1=document.createElementNS('http://www.w3.org/2000/svg','line'); p1.setAttribute('x1','1');p1.setAttribute('y1','1');p1.setAttribute('x2','23');p1.setAttribute('y2','23'); var p2=document.createElementNS('http://www.w3.org/2000/svg','path'); p2.setAttribute('d','M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94'); var p3=document.createElementNS('http://www.w3.org/2000/svg','path'); p3.setAttribute('d','M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19'); icon.appendChild(p1);icon.appendChild(p2);icon.appendChild(p3); } else { input.type='password'; while(icon.firstChild) icon.removeChild(icon.firstChild); var p1=document.createElementNS('http://www.w3.org/2000/svg','path'); p1.setAttribute('d','M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z'); var p2=document.createElementNS('http://www.w3.org/2000/svg','circle'); p2.setAttribute('cx','12');p2.setAttribute('cy','12');p2.setAttribute('r','3'); icon.appendChild(p1);icon.appendChild(p2); } }
@@ -1113,110 +1055,27 @@ var roomColors={ 1:{ev:'ov-ev-p',dot:'#534AB7',name:'Live Studio Hall'}, 2:{ev:'
 function startOverview(){ ovMonth=new Date(); goTo(6); ovRenderCalendar(); ovRenderLegend(); ovCloseDetail(); }
 function ovChMonth(d){ ovMonth=new Date(ovMonth.getFullYear(),ovMonth.getMonth()+d,1); ovRenderCalendar(); ovCloseDetail(); }
 function ovGetBookingsForDate(dateStr){ return st.bookings.filter(function(b){ return b.date===dateStr; }); }
-function ovRenderLegend(){
-  var lgHtml=Object.keys(roomColors).map(function(id){
-    return `
-      <div class="ov-legend-item">
-        <div class="ov-legend-dot" style="background:${roomColors[id].dot}"></div>
-        ${esc(roomColors[id].name)}
-      </div>
-    `;
-  }).join('');
-  document.getElementById('ov-legend').innerHTML=lgHtml;
-}function ovRenderCalendar(){
-  var m=ovMonth;
-  document.getElementById('ov-month-lbl').textContent=MONTHS_OV[m.getMonth()]+' '+m.getFullYear();
-  var first=new Date(m.getFullYear(),m.getMonth(),1).getDay();
-  var days=new Date(m.getFullYear(),m.getMonth()+1,0).getDate();
-  var today=new Date();
-  today.setHours(0,0,0,0);
-  var calHtml='';
-
+function ovRenderLegend(){ var lgHtml=''; Object.keys(roomColors).forEach(function(id){ lgHtml+='<div class="ov-legend-item"><div class="ov-legend-dot" style="background:'+roomColors[id].dot+'"></div>'+roomColors[id].name+'</div>'; }); document.getElementById('ov-legend').innerHTML=lgHtml; }
+function ovRenderCalendar(){
+  var m=ovMonth; document.getElementById('ov-month-lbl').textContent=MONTHS_OV[m.getMonth()]+' '+m.getFullYear();
+  var first=new Date(m.getFullYear(),m.getMonth(),1).getDay(); var days=new Date(m.getFullYear(),m.getMonth()+1,0).getDate(); var today=new Date(); today.setHours(0,0,0,0); var calHtml='';
   for(var i=0;i<first;i++) calHtml+='<div class="ov-day ov-empty"></div>';
-
   for(var d=1;d<=days;d++){
-    var dt=new Date(m.getFullYear(),m.getMonth(),d);
-    var isPast=dt<today;
-    var isToday=dt.getTime()===today.getTime();
-    var dateStr=dt.toLocaleDateString('en-GB',{month:'long',day:'numeric'});
-    var bookings=ovGetBookingsForDate(dateStr);
+    var dt=new Date(m.getFullYear(),m.getMonth(),d); var isPast=dt<today; var isToday=dt.getTime()===today.getTime(); var dateStr=dt.toLocaleDateString('en-GB',{month:'long',day:'numeric'}); var bookings=ovGetBookingsForDate(dateStr);
     var cls='ov-day'+(isPast?' ov-past':'')+(isToday?' ov-today':'');
-    var iso=dt.toISOString();
-
-    var evHtml=bookings.slice(0,2).map(function(b){
-      var rc=roomColors[b.room.id]||{ev:'ov-ev-p'};
-      return `<div class="ov-ev ${rc.ev}">${esc(b.time)} ${esc(b.room.name)} · ${esc(b.name)}</div>`;
-    }).join('');
-    if(bookings.length>2) evHtml+=`<div class="ov-more">+${bookings.length-2} more</div>`;
-
-    calHtml+=`
-      <div class="${cls}" onclick="ovShowDay('${iso}','${dateStr}')">
-        <div class="ov-day-num">${d}</div>
-        <div class="ov-day-events">${evHtml}</div>
-      </div>
-    `;
+    var evHtml=''; bookings.slice(0,2).forEach(function(b){ var rc=roomColors[b.room.id]||{ev:'ov-ev-p'}; evHtml+='<div class="ov-ev '+rc.ev+'">'+b.time+' '+b.room.name+' · '+b.name+'</div>'; }); if(bookings.length>2) evHtml+='<div class="ov-more">+'+(bookings.length-2)+' more</div>';
+    calHtml+='<div class="'+cls+'"><div class="ov-day-num">'+d+'</div><div class="ov-day-events">'+evHtml+'</div></div>';
   }
-
   document.getElementById('ov-cal-grid').innerHTML=calHtml;
-}function ovBookDay(iso){ st.date=new Date(iso); st.month=new Date(new Date(iso).getFullYear(),new Date(iso).getMonth(),1); st.room=null; st.time=null; renderCal(); goTo(1); }
+}
+function ovBookDay(iso){ st.date=new Date(iso); st.month=new Date(new Date(iso).getFullYear(),new Date(iso).getMonth(),1); st.room=null; st.time=null; renderCal(); goTo(1); }
 function ovBookSelected(){ var detail=document.getElementById('ov-detail'); var iso=detail.dataset.iso; if(iso) ovBookDay(iso); }
 function ovCloseDetail(){ document.getElementById('ov-detail').classList.remove('show'); }
-function ovShowDay(iso,dateStr){
-  var bookings=ovGetBookingsForDate(dateStr);
-  var detail=document.getElementById('ov-detail');
-  var list=document.getElementById('ov-detail-list');
-  detail.dataset.iso=iso;
-  detail.dataset.dateStr=dateStr;
-  document.getElementById('ov-detail-date').textContent=dateStr;
-
-  if(!bookings.length){
-    list.innerHTML=`<div class="ov-detail-empty">No bookings on this day</div>`;
-  } else {
-    list.innerHTML=bookings.map(function(b){
-      var rc=roomColors[b.room.id]||{dot:'#534AB7'};
-      var badgeBg=b.status==='confirmed'?'var(--teal-light)':'var(--amber-light)';
-      var badgeColor=b.status==='confirmed'?'var(--teal)':'var(--amber)';
-      return `
-        <div class="ov-detail-item">
-          <div class="ov-detail-dot" style="background:${rc.dot}"></div>
-          <div class="ov-detail-info">
-            <div class="ov-detail-room">${esc(b.room.name)} &middot; ${esc(b.time)}</div>
-            <div class="ov-detail-meta">PIC: ${esc(b.name)}</div>
-            ${b.note ? `<div class="ov-detail-meta" style="font-style:italic;">Note: ${esc(b.note)}</div>` : ''}
-          </div>
-          <span style="font-size:10px;padding:3px 8px;border-radius:10px;font-weight:500;background:${badgeBg};color:${badgeColor};">${b.status==='confirmed'?'Confirmed':'Pending'}</span>
-        </div>
-      `;
-    }).join('');
-  }
-  detail.classList.add('show');
-}function openMB(){ renderMB(); document.getElementById('mb-overlay').classList.add('show'); document.getElementById('mb-panel').classList.add('show'); }
+function ovShowDay(iso,dateStr){ var bookings=ovGetBookingsForDate(dateStr); var detail=document.getElementById('ov-detail'); var list=document.getElementById('ov-detail-list'); detail.dataset.iso=iso; detail.dataset.dateStr=dateStr; document.getElementById('ov-detail-date').textContent=dateStr; if(bookings.length===0){ list.innerHTML='<div class="ov-detail-empty">No bookings on this day</div>'; } else { list.innerHTML=bookings.map(function(b){ var rc=roomColors[b.room.id]||{dot:'#534AB7'}; return '<div class="ov-detail-item"><div class="ov-detail-dot" style="background:'+rc.dot+'"></div><div class="ov-detail-info"><div class="ov-detail-room">'+b.room.name+' &middot; '+b.time+'</div><div class="ov-detail-meta">PIC: '+b.name+'</div>'+(b.note?'<div class="ov-detail-meta" style="font-style:italic;">Note: '+b.note+'</div>':'')+'</div><span style="font-size:10px;padding:3px 8px;border-radius:10px;font-weight:500;background:'+(b.status==='confirmed'?'var(--teal-light)':'var(--amber-light)')+';color:'+(b.status==='confirmed'?'var(--teal)':'var(--amber)')+';">'+(b.status==='confirmed'?'Confirmed':'Pending')+'</span></div>'; }).join(''); } detail.classList.add('show'); }
+function openMB(){ renderMB(); document.getElementById('mb-overlay').classList.add('show'); document.getElementById('mb-panel').classList.add('show'); }
 function closeMB(){ document.getElementById('mb-overlay').classList.remove('show'); document.getElementById('mb-panel').classList.remove('show'); }
-function renderMB(){
-  var body=document.getElementById('mb-body');
-  if(!st.bookings.length){
-    body.innerHTML=`<div class="mb-empty"><div style="font-size:32px;opacity:0.4;margin-bottom:10px;">📭</div>No bookings yet</div>`;
-    return;
-  }
-  var bgMap={1:'var(--purple-light)',2:'var(--teal-light)',3:'var(--coral-light)',4:'var(--pink-light)',5:'var(--blue-light)',6:'var(--amber-light)',7:'var(--green-light)'};
-  body.innerHTML=st.bookings.map(function(b){
-    var bg=bgMap[b.room.id]||'var(--purple-light)';
-    return `
-      <div class="mb-card">
-        <div class="mb-top">
-          <div class="mb-icon" style="background:${bg}">${b.room.icon}</div>
-          <div class="mb-info">
-            <div class="mb-room">${esc(b.room.name)} &middot; ${esc(b.time)}</div>
-            <div class="mb-meta">${esc(b.date)} &middot; ${esc(b.name)}</div>
-          </div>
-          <span class="mb-badge ${b.status==='confirmed'?'sc2':'sp'}">${b.status==='confirmed'?'Confirmed':'Pending'}</span>
-          <button class="mb-cancel" onclick="cancelFromMB(${b.id})">&#x2715;</button>
-        </div>
-        ${b.note ? `<div class="mb-foot">Note: ${esc(b.note)}</div>` : ''}
-      </div>
-    `;
-  }).join('');
-}function cancelFromMB(id){ st.bookings=st.bookings.filter(function(b){ return b.id!==id; }); save(); updCount(); renderBookings(); renderMB(); showToast('Booking cancelled'); }
+function renderMB(){ var body=document.getElementById('mb-body'); if(!st.bookings.length){ body.innerHTML='<div class="mb-empty"><div style="font-size:32px;opacity:0.4;margin-bottom:10px;">📭</div>No bookings yet</div>'; return; } var bgMap={1:'var(--purple-light)',2:'var(--teal-light)',3:'var(--coral-light)',4:'var(--pink-light)',5:'var(--blue-light)',6:'var(--amber-light)',7:'var(--green-light)'}; body.innerHTML=st.bookings.map(function(b){ var bg=bgMap[b.room.id]||'var(--purple-light)'; return '<div class="mb-card"><div class="mb-top"><div class="mb-icon" style="background:'+bg+'">'+b.room.icon+'</div><div class="mb-info"><div class="mb-room">'+b.room.name+' &middot; '+b.time+'</div><div class="mb-meta">'+b.date+' &middot; '+b.name+'</div></div><span class="mb-badge '+(b.status==='confirmed'?'sc2':'sp')+'">'+(b.status==='confirmed'?'Confirmed':'Pending')+'</span><button class="mb-cancel" onclick="cancelFromMB('+b.id+')">&#x2715;</button></div>'+(b.note?'<div class="mb-foot">Note: '+b.note+'</div>':'')+'</div>'; }).join(''); }
+function cancelFromMB(id){ st.bookings=st.bookings.filter(function(b){ return b.id!==id; }); save(); updCount(); renderBookings(); renderMB(); showToast('Booking cancelled'); }
 var leaveRecords = [];
 try { var _lr = localStorage.getItem('omLeaveRecords'); if(_lr) leaveRecords = JSON.parse(_lr); } catch(e){}
 function saveLeaveRecs(){ try{ localStorage.setItem('omLeaveRecords', JSON.stringify(leaveRecords)); }catch(e){} }
@@ -1235,27 +1094,15 @@ function submitLeave(){
   var fileNames=lfFiles.map(function(f){ return f.name; });
   var firstImg=lfFiles.find(function(f){ return f.type&&f.type.startsWith('image/'); });
   function storeAndPost(preview){
-    var rec={
-      id:Date.now(),
-      name:name,
-      date:lfDateStr,
-      period:lfPeriodVal,
-      type:typeVal,
-      reason:reason,
-      files:fileNames,
-      imgPreview:preview||null,
-      status:'pending',
-      submitted:today
-    };
-    leaveRecords.unshift(rec);
-    saveLeaveRecs();
+    // Save to admin panel local records
+    var _leaveRec = {id:Date.now(), name:name, date:lfDateStr, period:lfPeriodVal, type:typeVal, reason:reason, files:fileNames, imgPreview:preview||null, status:'pending', submitted:new Date().toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})};
+    leaveRecords.unshift(_leaveRec); saveLeaveRecs();
+    
+    var rec={id:Date.now(),name:name,date:lfDateStr,period:lfPeriodVal,type:typeVal,reason:reason,files:fileNames,imgPreview:preview||null,status:'pending',submitted:today};
+    leaveRecords.unshift(rec); saveLeaveRecs();
     var url=LF_URL+'?lf=1&person_name='+encodeURIComponent(name)+'&date='+encodeURIComponent(lfDateStr)+'&period='+encodeURIComponent(lfPeriodVal)+'&leave_type='+encodeURIComponent(typeVal)+'&reason='+encodeURIComponent(reason);
     fetch(url,{method:'GET',mode:'no-cors'}).catch(function(e){ console.warn(e); });
-    showToast('Leave request submitted! ✓');
-    clearLeaveForm();
-    btn.disabled=false;
-    btn.textContent='Submit Request →';
-    goTo(0);
+    showToast('Leave request submitted! ✓'); clearLeaveForm(); btn.disabled=false; btn.textContent='Submit Request →'; goTo(0);
   }
   if(firstImg){ var rdr=new FileReader(); rdr.onload=function(ev){ storeAndPost(ev.target.result); }; rdr.onerror=function(){ storeAndPost(null); }; rdr.readAsDataURL(firstImg); }
   else { storeAndPost(null); }
@@ -1325,6 +1172,7 @@ function admRenderBookings(){
     return (va>vb?1:va<vb?-1:0)*bSort.dir;
   });
 
+  // Stats
   var all = st.bookings||[];
   document.getElementById('bs-total').textContent = all.length;
   document.getElementById('bs-conf').textContent  = all.filter(function(b){return b.status==='confirmed';}).length;
@@ -1333,31 +1181,30 @@ function admRenderBookings(){
 
   var tbody = document.getElementById('ab-tbody');
   if(!data.length){
-    tbody.innerHTML=`<tr><td colspan="8"><div class="adm-empty-state"><div class="ei">📭</div>No records</div></td></tr>`;
+    tbody.innerHTML='<tr><td colspan="8"><div class="adm-empty-state"><div class="ei">📭</div>No records</div></td></tr>';
     document.getElementById('ab-footer').textContent='';
     return;
   }
 
   var dots={1:'#534AB7',2:'#0F6E56',3:'#993C1D',4:'#993556',5:'#185FA5',6:'#854F0B',7:'#0F6E56'};
   tbody.innerHTML = data.map(function(b,i){
-    var bdg = b.status==='confirmed'
-      ? `<span class="adm-bdg bdg-confirmed">Confirmed</span>`
-      : `<span class="adm-bdg bdg-pending">Pending</span>`;
-    return `
-      <tr>
-        <td class="td-dim">${i+1}</td>
-        <td class="td-bold">${esc(b.name)}</td>
-        <td><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${dots[b.room.id]||'#888'};margin-right:6px;"></span>${esc(b.room.name)}</td>
-        <td>${esc(b.date)}</td>
-        <td><span style="font-family:monospace;background:rgba(255,255,255,0.06);padding:2px 7px;border-radius:4px;">${esc(b.time)}</span></td>
-        <td>${bdg}</td>
-        <td class="td-dim" style="max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${esc(b.note||'')}">${b.note?esc(b.note):'—'}</td>
-        <td><button class="adm-rm-btn" onclick="admRmBooking(${b.id})">Remove</button></td>
-      </tr>
-    `;
+    var dot='<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:'+(dots[b.room.id]||'#888')+';margin-right:6px;"></span>';
+    var bdg = b.status==='confirmed'?'<span class="adm-bdg bdg-confirmed">Confirmed</span>':'<span class="adm-bdg bdg-pending">Pending</span>';
+    return '<tr>'
+      +'<td class="td-dim">'+(i+1)+'</td>'
+      +'<td class="td-bold">'+esc(b.name)+'</td>'
+      +'<td>'+dot+esc(b.room.name)+'</td>'
+      +'<td>'+esc(b.date)+'</td>'
+      +'<td><span style="font-family:monospace;background:rgba(255,255,255,0.06);padding:2px 7px;border-radius:4px;">'+esc(b.time)+'</span></td>'
+      +'<td>'+bdg+'</td>'
+      +'<td class="td-dim" style="max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="'+(b.note||'')+'">'+(b.note?esc(b.note):'—')+'</td>'
+      +'<td><button class="adm-rm-btn" onclick="admRmBooking('+b.id+')">Remove</button></td>'
+      +'</tr>';
   }).join('');
   document.getElementById('ab-footer').textContent = 'Showing '+data.length+' of '+all.length+' bookings';
-}function admRmBooking(id){
+}
+
+function admRmBooking(id){
   st.bookings = st.bookings.filter(function(b){return b.id!==id;});
   save(); updCount(); renderBookings(); admRenderBookings();
   showToast('Record removed');
@@ -1391,6 +1238,7 @@ function admRenderLeave(){
     return (va>vb?1:va<vb?-1:0)*lSort.dir;
   });
 
+  // Stats
   document.getElementById('ls-total').textContent = leaveRecords.length;
   document.getElementById('ls-appr').textContent  = leaveRecords.filter(function(r){return r.status==='approved';}).length;
   document.getElementById('ls-pend').textContent  = leaveRecords.filter(function(r){return r.status==='pending';}).length;
@@ -1398,7 +1246,7 @@ function admRenderLeave(){
 
   var tbody = document.getElementById('al-tbody');
   if(!data.length){
-    tbody.innerHTML=`<tr><td colspan="10"><div class="adm-empty-state"><div class="ei">📭</div>No leave requests yet</div></td></tr>`;
+    tbody.innerHTML='<tr><td colspan="9"><div class="adm-empty-state"><div class="ei">📭</div>No leave requests yet</div></td></tr>';
     document.getElementById('al-footer').textContent='';
     return;
   }
@@ -1411,52 +1259,43 @@ function admRenderLeave(){
   var pcMap  = {'Full day':'period-full','AM':'period-am','PM':'period-pm'};
 
   tbody.innerHTML = data.map(function(r,i){
+    // Photo / doc cell
     var docCell;
     if(r.imgPreview){
-      docCell = `<div class="adm-thumb" onclick="openAdmLb('${r.id}')" title="Click to enlarge"><img src="${r.imgPreview}" alt="doc"></div>`;
+      docCell = '<div class="adm-thumb" onclick="openAdmLb(\''+r.id+'\')" title="Click to enlarge"><img src="'+r.imgPreview+'" alt="doc"></div>';
     } else if(r.files && r.files.length){
-      docCell = `<div class="adm-no-doc" title="${esc(r.files.join(', '))}">📄</div>`;
+      docCell = '<div class="adm-no-doc" title="'+r.files.join(', ')+'">📄</div>';
     } else {
-      docCell = `<div class="adm-no-doc">—</div>`;
+      docCell = '<div class="adm-no-doc">—</div>';
     }
 
     var periodCls = pcMap[r.period]||'';
     var selOpts = ['pending','approved','rejected'].map(function(s){
-      return `<option value="${s}"${r.status===s?' selected':''}>${s.charAt(0).toUpperCase()+s.slice(1)}</option>`;
+      return '<option value="'+s+'"'+(r.status===s?' selected':'')+'>'+s.charAt(0).toUpperCase()+s.slice(1)+'</option>';
     }).join('');
 
-    return `
-      <tr>
-        <td class="td-dim">${i+1}</td>
-        <td class="td-bold">${esc(r.name)}</td>
-        <td style="font-size:11px;">${esc(r.date)}</td>
-        <td><span class="${periodCls}" style="font-size:11px;font-weight:600;">${esc(r.period)}</span></td>
-        <td style="max-width:150px;font-size:11px;color:rgba(255,255,255,0.6);">${esc(r.type)}</td>
-        <td class="td-dim" style="max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${esc(r.reason||'')}">${r.reason?esc(r.reason):'—'}</td>
-        <td>${docCell}</td>
-        <td class="td-dim">${r.submitted||'—'}</td>
-        <td>
-          <div style="display:flex;align-items:center;gap:5px;">
-            ${bdgMap[r.status]||bdgMap.pending}
-            <select class="adm-status-sel" onchange="admSetLeaveStatus('${r.id}',this.value)">${selOpts}</select>
-          </div>
-        </td>
-        <td><button class="adm-rm-btn" onclick="admRmLeave('${r.id}')">Remove</button></td>
-      </tr>
-    `;
+    return '<tr>'
+      +'<td class="td-dim">'+(i+1)+'</td>'
+      +'<td class="td-bold">'+esc(r.name)+'</td>'
+      +'<td style="font-size:11px;">'+esc(r.date)+'</td>'
+      +'<td><span class="'+periodCls+'" style="font-size:11px;font-weight:600;">'+esc(r.period)+'</span></td>'
+      +'<td style="max-width:150px;font-size:11px;color:rgba(255,255,255,0.6);">'+esc(r.type)+'</td>'
+      +'<td class="td-dim" style="max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="'+(r.reason||'')+'">'+(r.reason?esc(r.reason):'—')+'</td>'
+      +'<td>'+docCell+'</td>'
+      +'<td class="td-dim">'+(r.submitted||'—')+'</td>'
+      +'<td><div style="display:flex;align-items:center;gap:5px;">'
+        +(bdgMap[r.status]||bdgMap.pending)
+        +'<select class="adm-status-sel" onchange="admSetLeaveStatus(\''+r.id+'\',this.value)">'+selOpts+'</select>'
+      +'</div></td>'
+      +'</tr>';
   }).join('');
 
   document.getElementById('al-footer').textContent = 'Showing '+data.length+' of '+leaveRecords.length+' requests';
-}function admSetLeaveStatus(id, val){
-  var rec = leaveRecords.find(function(r){ return String(r.id)===String(id); });
-  if(rec){ rec.status=val; saveLeaveRecs(); admRenderLeave(); showToast('Status → '+val); }
 }
 
-function admRmLeave(id){
-  leaveRecords = leaveRecords.filter(function(r){ return String(r.id)!==String(id); });
-  saveLeaveRecs();
-  admRenderLeave();
-  showToast('Leave record removed');
+function admSetLeaveStatus(id, val){
+  var rec = leaveRecords.find(function(r){ return String(r.id)===String(id); });
+  if(rec){ rec.status=val; saveLeaveRecs(); admRenderLeave(); showToast('Status → '+val); }
 }
 
 function admExportLeave(){
