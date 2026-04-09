@@ -1350,13 +1350,11 @@ function submitLeave(){
   var reason = document.getElementById('lf-reason').value.trim() || '-';
   var btn = document.getElementById('lf-submit-btn');
   btn.disabled = true;
-  btn.textContent = 'Uploading...';
+  btn.textContent = 'Submitting...';
 
   var LF_URL = 'https://script.google.com/macros/s/AKfycbwrWP8Nr6M9pKXT_6OAtnsZ2NP7lNuJb6NUF1BhLmlaCy_S9Kki2aX05bf_NAp-OidoQA/exec';
-  var WORKER = LF_URL;
 
-  function sendToSheet(fileUrls){
-    btn.textContent = 'Submitting...';
+  function submitForm(fileUrls){
     var url = LF_URL
       + '?lf=1'
       + '&person_name=' + encodeURIComponent(name)
@@ -1366,23 +1364,22 @@ function submitLeave(){
       + '&reason='      + encodeURIComponent(reason)
       + '&file_urls='   + encodeURIComponent(fileUrls || '');
     fetch(url, { method: 'GET', mode: 'no-cors' })
-      .catch(function(err){ console.warn('LF submit error:', err); });
+      .catch(function(err){ console.warn('Submit error:', err); });
     showToast('Leave request submitted! ✓');
     clearLeaveForm();
     btn.disabled = false;
-    btn.textContent = 'Submit Request ->';
+    btn.textContent = 'Submit Request →';
     goTo(0);
   }
 
   if(lfFiles.length === 0){
-    sendToSheet('');
+    submitForm('');
     return;
   }
 
-  // Read files as base64 then upload via Cloudflare Worker
+  btn.textContent = 'Uploading files...';
   var fileData = [];
   var processed = 0;
-  btn.textContent = 'Reading files...';
 
   lfFiles.forEach(function(file){
     var reader = new FileReader();
@@ -1394,27 +1391,23 @@ function submitLeave(){
       });
       processed++;
       if(processed === lfFiles.length){
-        btn.textContent = 'Uploading files...';
-        var urls = [];
-        var uploadNext = function(i){
-          if(i >= fileData.length){ sendToSheet(urls.join(', ')); return; }
-          var f = fileData[i];
-          var url = LF_URL + '?action=upload'
-            + '&base64=' + encodeURIComponent(f.base64)
-            + '&mimeType=' + encodeURIComponent(f.mimeType)
-            + '&fileName=' + encodeURIComponent(f.name);
-          fetch(url)
-            .then(function(r){ return r.json(); })
-            .then(function(data){ if(data.url) urls.push(data.url); uploadNext(i+1); })
-            .catch(function(){ uploadNext(i+1); });
-        };
-        uploadNext(0);
+        fetch(LF_URL, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'text/plain' },
+          body: JSON.stringify({ type: 'file_upload', files: fileData })
+        })
+        .then(function(){
+          submitForm('See Leave Documents folder in Drive');
+        })
+        .catch(function(){
+          submitForm('File upload attempted');
+        });
       }
     };
     reader.readAsDataURL(file);
   });
 }
-
 
 function lfChMonth(d){
   lfCalMonth = new Date(lfCalMonth.getFullYear(), lfCalMonth.getMonth()+d, 1);
