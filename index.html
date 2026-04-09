@@ -869,6 +869,7 @@ body.dark .om-rule-dot { background: #e08090; }
                   <th>Photo / Doc</th>
                   <th>Submitted</th>
                   <th>Status</th>
+                  <th>Remove</th>
                 </tr></thead>
                 <tbody id="al-tbody"></tbody>
               </table>
@@ -1234,15 +1235,27 @@ function submitLeave(){
   var fileNames=lfFiles.map(function(f){ return f.name; });
   var firstImg=lfFiles.find(function(f){ return f.type&&f.type.startsWith('image/'); });
   function storeAndPost(preview){
-    // Save to admin panel local records
-    var _leaveRec = {id:Date.now(), name:name, date:lfDateStr, period:lfPeriodVal, type:typeVal, reason:reason, files:fileNames, imgPreview:preview||null, status:'pending', submitted:new Date().toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})};
-    leaveRecords.unshift(_leaveRec); saveLeaveRecs();
-    
-    var rec={id:Date.now(),name:name,date:lfDateStr,period:lfPeriodVal,type:typeVal,reason:reason,files:fileNames,imgPreview:preview||null,status:'pending',submitted:today};
-    leaveRecords.unshift(rec); saveLeaveRecs();
+    var rec={
+      id:Date.now(),
+      name:name,
+      date:lfDateStr,
+      period:lfPeriodVal,
+      type:typeVal,
+      reason:reason,
+      files:fileNames,
+      imgPreview:preview||null,
+      status:'pending',
+      submitted:today
+    };
+    leaveRecords.unshift(rec);
+    saveLeaveRecs();
     var url=LF_URL+'?lf=1&person_name='+encodeURIComponent(name)+'&date='+encodeURIComponent(lfDateStr)+'&period='+encodeURIComponent(lfPeriodVal)+'&leave_type='+encodeURIComponent(typeVal)+'&reason='+encodeURIComponent(reason);
     fetch(url,{method:'GET',mode:'no-cors'}).catch(function(e){ console.warn(e); });
-    showToast('Leave request submitted! ✓'); clearLeaveForm(); btn.disabled=false; btn.textContent='Submit Request →'; goTo(0);
+    showToast('Leave request submitted! ✓');
+    clearLeaveForm();
+    btn.disabled=false;
+    btn.textContent='Submit Request →';
+    goTo(0);
   }
   if(firstImg){ var rdr=new FileReader(); rdr.onload=function(ev){ storeAndPost(ev.target.result); }; rdr.onerror=function(){ storeAndPost(null); }; rdr.readAsDataURL(firstImg); }
   else { storeAndPost(null); }
@@ -1385,7 +1398,7 @@ function admRenderLeave(){
 
   var tbody = document.getElementById('al-tbody');
   if(!data.length){
-    tbody.innerHTML=`<tr><td colspan="9"><div class="adm-empty-state"><div class="ei">📭</div>No leave requests yet</div></td></tr>`;
+    tbody.innerHTML=`<tr><td colspan="10"><div class="adm-empty-state"><div class="ei">📭</div>No leave requests yet</div></td></tr>`;
     document.getElementById('al-footer').textContent='';
     return;
   }
@@ -1428,6 +1441,7 @@ function admRenderLeave(){
             <select class="adm-status-sel" onchange="admSetLeaveStatus('${r.id}',this.value)">${selOpts}</select>
           </div>
         </td>
+        <td><button class="adm-rm-btn" onclick="admRmLeave('${r.id}')">Remove</button></td>
       </tr>
     `;
   }).join('');
@@ -1436,6 +1450,13 @@ function admRenderLeave(){
 }function admSetLeaveStatus(id, val){
   var rec = leaveRecords.find(function(r){ return String(r.id)===String(id); });
   if(rec){ rec.status=val; saveLeaveRecs(); admRenderLeave(); showToast('Status → '+val); }
+}
+
+function admRmLeave(id){
+  leaveRecords = leaveRecords.filter(function(r){ return String(r.id)!==String(id); });
+  saveLeaveRecs();
+  admRenderLeave();
+  showToast('Leave record removed');
 }
 
 function admExportLeave(){
