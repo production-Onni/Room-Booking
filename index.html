@@ -1010,13 +1010,45 @@ const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // ✅ LOGIN FUNCTION（你现在缺的就是这个）
 async function doLogin() {
-  const email = document.getElementById('login-user').value;
-const password = document.getElementById('login-pass').value;
+  const emailEl = document.getElementById('login-user');
+  const passEl = document.getElementById('login-pass');
+  const errEl = document.getElementById('login-err');
+
+  const email = emailEl ? emailEl.value.trim() : '';
+  const password = passEl ? passEl.value : '';
+
+  if (errEl) errEl.textContent = '';
 
   if (!email || !password) {
-    alert('Please enter email & password');
+    if (errEl) errEl.textContent = 'Please enter email and password.';
     return;
   }
+
+  const { data, error } = await sb.auth.signInWithPassword({
+    email,
+    password
+  });
+
+  if (error) {
+    console.error(error);
+    if (errEl) errEl.textContent = error.message;
+    return;
+  }
+
+  console.log('Login success', data);
+
+  const loginPage = document.getElementById('login-page');
+  if (loginPage) {
+    loginPage.classList.add('hide');
+    setTimeout(() => {
+      loginPage.style.display = 'none';
+    }, 400);
+  }
+
+  if (typeof handleAuthedUser === 'function' && data?.user) {
+    await handleAuthedUser(data.user);
+  }
+}
 
   const { data, error } = await sb.auth.signInWithPassword({
     email,
