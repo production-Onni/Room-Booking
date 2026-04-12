@@ -1606,7 +1606,16 @@ async function cloudLoadBookings(){
 }
 
 async function cloudInsertBooking(b){
-  const row = { id:String(b.id), user_id:currentUser.id, payload:b };
+  console.log('FULL BOOKING:', b);
+  console.log('ROOM DATA:', b.room);
+
+  const row = {
+    id: String(b.id),
+    user_id: currentUser.id,
+    room_id: b.room && b.room.id ? String(b.room.id) : null,
+    payload: b
+  };
+
   const { error } = await sb.from('bookings').upsert(row, { onConflict:'id' });
   if(error) throw error;
 }
