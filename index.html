@@ -1046,41 +1046,9 @@ async function doLogin() {
   }
 
   if (typeof handleAuthedUser === 'function' && data?.user) {
-    await handleAuthedUser(data.user);
+    handleAuthedUser(data.user);
   }
-}
-
-  const { data, error } = await sb.auth.signInWithPassword({
-    email,
-    password
-  });
-
-  if (error) {
-    console.error(error);
-    alert('Login failed: ' + error.message);
-    return;
-  }
-
-  console.log('Login success', data);
-
-  // 👉 登录成功后隐藏 login page
-  document.getElementById('login-page').style.display = 'none';
-}
-  var email=document.getElementById('login-user').value.trim();
-  var pass=document.getElementById('login-pass').value;
-  var err=document.getElementById('login-err');
-  if(!email || !pass){ err.textContent='Please enter your email and password.'; return; }
-  err.textContent='';
-  var btn=document.querySelector('.login-btn');
-  if(btn){ btn.disabled=true; btn.textContent='Signing in...'; }
-  const { data, error } = await sb.auth.signInWithPassword({ email: email, password: pass });
-  if(btn){ btn.disabled=false; btn.textContent='Sign In'; }
-  if(error){
-    err.textContent = error.message || 'Login failed.';
-    return;
-  }
-  await handleAuthedUser(data.user);
-}
+ }
 var ovMonth=new Date();
 var MONTHS_OV=['January','February','March','April','May','June','July','August','September','October','November','December'];
 var roomColors={ 1:{ev:'ov-ev-p',dot:'#534AB7',name:'Live Studio Hall'}, 2:{ev:'ov-ev-t',dot:'#0F6E56',name:'Studio 2'}, 3:{ev:'ov-ev-c',dot:'#993C1D',name:'Studio 3'}, 4:{ev:'ov-ev-k',dot:'#993556',name:'Studio 4'}, 5:{ev:'ov-ev-b',dot:'#185FA5',name:'Studio 5'}, 6:{ev:'ov-ev-a',dot:'#854F0B',name:'Function Room'}, 7:{ev:'ov-ev-g',dot:'#0F6E56',name:'The Pods'} };
@@ -1097,7 +1065,8 @@ function ovRenderLegend(){
     `;
   }).join('');
   document.getElementById('ov-legend').innerHTML=lgHtml;
-}function ovRenderCalendar(){
+}
+  function ovRenderCalendar(){
   var m=ovMonth;
   document.getElementById('ov-month-lbl').textContent=MONTHS_OV[m.getMonth()]+' '+m.getFullYear();
   var first=new Date(m.getFullYear(),m.getMonth(),1).getDay();
