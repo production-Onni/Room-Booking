@@ -1617,9 +1617,9 @@ async function cloudInsertBooking(b){
   date: b.date ? String(b.date) : '',
   time: b.time ? String(b.time) : '',
   name: b.name ? String(b.name) : '',
+  person_name: b.name ? String(b.name) : '',
   payload: b
 };
-
   const { error } = await sb.from('bookings').upsert(row, { onConflict:'id' });
   if(error) throw error;
 }
