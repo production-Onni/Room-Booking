@@ -1614,6 +1614,9 @@ async function cloudInsertBooking(b){
   user_id: currentUser.id,
   room_id: b.room && b.room.id ? String(b.room.id) : null,
   room_name: b.room && b.room.name ? b.room.name : '',
+  date: b.date ? String(b.date) : '',
+  time: b.time ? String(b.time) : '',
+  name: b.name ? String(b.name) : '',
   payload: b
 };
 
