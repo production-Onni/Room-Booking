@@ -1853,10 +1853,10 @@ document.getElementById('login-pass').addEventListener('keydown', function(e){ i
 
   const { data } = await sb.auth.getSession();
 
-  if (isInviteLink && data && data.session) {
-    showSetPasswordPage();
-    return;
-  }
+  if (isInviteLink) {
+  showSetPasswordPage();
+  return;
+}
 
   if (data && data.session && data.session.user) {
     currentUser = data.session.user;
