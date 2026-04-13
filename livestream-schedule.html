@@ -366,10 +366,10 @@ function designTasks(ds, liveD, type, hostId){
   const hostName = host.name;
 
   const tasks = [
-    {key:'d1', name:'海报第一版交给Kei', date:offset(ds,-5)},
-    {key:'d2', name:'商家有24h检查配套图', date:offset(ds,-4)},
-    {key:'d3', name:'客服准备发布', date:offset(ds,-3)},
-  ];
+  {key:'d1', name:`${hostName}·${type}｜海报第一版`, date:offset(ds,-5)},
+  {key:'d2', name:`${hostName}·${type}｜商家检查24h`, date:offset(ds,-4)},
+  {key:'d3', name:`${hostName}·${type}｜客服发布`, date:offset(ds,-3)},
+];
 
   if(type === '直播'){
     tasks.push(
