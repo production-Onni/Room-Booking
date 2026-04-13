@@ -256,18 +256,33 @@ function hostById(id){return HOSTS.find(h=>h.id===id)||HOSTS[0]}
 /* ── PERSISTENCE ── */
 const entries=[];
 const checks=new Set();
-const supabase = window.supabase.createClient('https://xuibibtaemaeeoodtxts.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh1aWJpYnRhZW1hZWVvb2R0eHRzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUxOTc5NTksImV4cCI6MjA5MDc3Mzk1OX0.Oi5owJJG2uee63oROzU5Dd5daulR95Z_-gWiS0EfgPk');
+const sb = window.supabase.createClient(
+  'https://xuibibtaemaeeoodtxts.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh1aWJpYnRhZW1hZWVvb2R0eHRzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUxOTc5NTksImV4cCI6MjA5MDc3Mzk1OX0.Oi5owJJG2uee63oROzU5Dd5daulR95Z_-gWiS0EfgPk'
+);
+
 async function saveState(){
-  const rows = entries.map(e=>({ entry_key:[e.ds,e.hostId,e.type].join('|'), ds:e.ds, host_id:e.hostId, schedule_type:e.type, checks:[...checks].filter(k=>k.startsWith([e.ds,e.hostId,e.type].join('|')+'|')) }));
-  const { data: userWrap } = await supabase.auth.getUser();
+  const rows = entries.map(e=>({
+    entry_key:[e.ds,e.hostId,e.type].join('|'),
+    ds:e.ds,
+    host_id:e.hostId,
+    schedule_type:e.type,
+    checks:[...checks].filter(k=>k.startsWith([e.ds,e.hostId,e.type].join('|')+'|'))
+  }));
+
+  const { data: userWrap } = await sb.auth.getUser();
   const userId = userWrap && userWrap.user ? userWrap.user.id : null;
-  await supabase.from('livestream_schedules').delete().eq('scope','shared');
+
+  await sb.from('livestream_schedules').delete().eq('scope','shared');
+
   if(rows.length){
-    await supabase.from('livestream_schedules').insert(rows.map(r=>Object.assign({user_id:userId, scope:'shared'}, r)));
+    await sb.from('livestream_schedules').insert(
+      rows.map(r=>Object.assign({user_id:userId, scope:'shared'}, r))
+    );
   }
 }
 async function loadState(){
-  const { data } = await supabase.from('livestream_schedules').select('*').eq('scope','shared').order('ds',{ascending:true});
+  const { data } = await sb.from('livestream_schedules').select('*').eq('scope','shared').order('ds',{ascending:true});
   entries.length=0; checks.clear();
   (data||[]).forEach(r=>{ entries.push({ds:r.ds, hostId:r.host_id, type:r.schedule_type}); (r.checks||[]).forEach(k=>checks.add(k)); });
 }
