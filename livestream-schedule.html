@@ -619,14 +619,6 @@ async function initCloud(){
   if(entries.length) render(); else renderCalendar();
 }
 // override mutating ops to sync cloud
-const _origToggleCheck = toggleCheck;
-toggleCheck = async function(ds,hostId,type,taskKey){ _origToggleCheck(ds,hostId,type,taskKey); await saveState(); };
-const _origAddDate = addDate;
-addDate = async function(){ _origAddDate(); await saveState(); };
-const _origRemoveEntry = removeEntry;
-removeEntry = async function(ds,hostId,type){ _origRemoveEntry(ds,hostId,type); await saveState(); };
-const _origClearAll = clearAll;
-clearAll = async function(){ if(!confirm('确认清除所有排期？'))return; entries.length=0; checks.clear(); activeFilter='all'; await saveState(); render(); };
 initCloud();
 
 </script>
