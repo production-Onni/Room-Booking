@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>直播排期系统</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Noto+Sans+SC:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#F4F6F8; --surface:#FFFFFF; --border:#DEE3E9; --border-light:#EDF0F3;
+    --text:#111827; --muted:#6B7280; --accent:#C84B2F; --accent-light:#FEF0ED;
+    --gold:#B5820A; --gold-light:#FEF9E7; --green:#1E7A4A; --green-light:#E8F5EE;
+    --design-tag:#3B4FA8; --design-tag-light:#EEF2FF;
+    --mkt-tag:#7B3DAE; --mkt-tag-light:#F5F0FF;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Noto Sans SC',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-weight:300}
+
+  .header{background:var(--text);color:var(--bg);padding:0 40px;display:flex;align-items:center;justify-content:space-between;height:64px;position:sticky;top:0;z-index:100}
+  .header-title{font-family:'DM Mono',monospace;font-size:13px;letter-spacing:.12em;text-transform:uppercase;opacity:.9}
+  .header-sub{font-size:11px;font-family:'DM Mono',monospace;opacity:.4;letter-spacing:.08em}
+
+  .tabbar-wrap{background:var(--surface);border-bottom:1px solid var(--border)}
+  .tabbar{display:flex;padding:0 32px;max-width:960px;margin:0 auto}
+  .tab{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;padding:14px 20px;border:none;background:none;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:color .15s}
+  .tab.active{color:var(--text);border-bottom-color:var(--text)}
+  .tab:hover{color:var(--text)}
+
+  .container{max-width:960px;margin:0 auto;padding:32px 32px 80px}
+
+  .input-panel{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px 28px;margin-bottom:24px;display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap}
+  .field{display:flex;flex-direction:column;gap:6px;flex:1;min-width:140px}
+  .field label{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.1em;color:var(--muted);text-transform:uppercase}
+  .field input[type="date"],.field select{padding:10px 14px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);font-size:14px;font-family:'DM Mono',monospace;outline:none;transition:border-color .15s;-webkit-appearance:none;width:100%;cursor:pointer}
+  .field input[type="date"]:focus,.field select:focus{border-color:var(--text)}
+  .sel-wrap{position:relative}
+  .sel-wrap::after{content:'▾';position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:11px;color:var(--muted);pointer-events:none}
+  .sel-wrap select{padding-right:30px}
+  .add-btn{height:42px;padding:0 28px;background:var(--text);color:var(--bg);border:none;border-radius:8px;font-family:'DM Mono',monospace;font-size:12px;letter-spacing:.08em;cursor:pointer;transition:opacity .15s,transform .1s;white-space:nowrap}
+  .add-btn:hover{opacity:.85}
+  .add-btn:active{transform:scale(.98)}
+
+  .host-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;flex-shrink:0}
+
+  .top-actions{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px}
+  .top-right{display:flex;gap:10px}
+  .ghost-btn{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.08em;padding:7px 16px;border:1px solid var(--border);border-radius:7px;background:var(--surface);color:var(--muted);cursor:pointer;transition:all .15s}
+  .ghost-btn:hover{border-color:var(--text);color:var(--text)}
+
+  .filter-bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .filter-label{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.1em;color:var(--muted);text-transform:uppercase;margin-right:4px}
+  .filter-btn{display:flex;align-items:center;gap:6px;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.06em;padding:5px 12px;border-radius:20px;border:1px solid var(--border);background:var(--surface);color:var(--muted);cursor:pointer;transition:all .15s}
+  .filter-btn.on{color:var(--text);border-color:currentColor}
+  .filter-btn:hover{color:var(--text)}
+
+  .summary{display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap}
+  .summary-pill{font-family:'DM Mono',monospace;font-size:11px;padding:5px 14px;border-radius:20px;border:1px solid var(--border);color:var(--muted);letter-spacing:.05em;background:var(--surface)}
+  .summary-pill span{color:var(--text);font-weight:500}
+
+  .legend{display:flex;gap:16px;margin-bottom:20px;flex-wrap:wrap}
+  .legend-item{display:flex;align-items:center;gap:6px;font-size:11px;font-family:'DM Mono',monospace;color:var(--muted);letter-spacing:.04em}
+  .legend-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+  .legend-sq{width:10px;height:10px;border-radius:2px;flex-shrink:0}
+
+  /* Calendar */
+  .cal-wrap{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+  .cal-nav{display:flex;align-items:center;justify-content:space-between;padding:16px 24px;border-bottom:1px solid var(--border-light)}
+  .cal-nav-btn{background:none;border:1px solid var(--border);border-radius:6px;width:32px;height:32px;cursor:pointer;color:var(--text);font-size:16px;display:flex;align-items:center;justify-content:center;transition:background .15s;line-height:1}
+  .cal-nav-btn:hover{background:var(--bg)}
+  .cal-month-label{font-family:'DM Mono',monospace;font-size:15px;font-weight:500;letter-spacing:.06em}
+  .cal-dow{padding:10px 0 8px;text-align:center;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.1em;color:var(--muted);border-bottom:1px solid var(--border-light)}
+  .cal-cell{height:110px;padding:8px 6px;border-right:1px solid var(--border-light);border-bottom:1px solid var(--border-light);overflow:hidden}
+  .cal-cell:nth-child(7n){border-right:none}
+  .cal-cell.other-month .cal-day-num{opacity:.22}
+  .cal-cell.is-today .cal-day-num{background:var(--text);color:var(--bg);border-radius:50%}
+  .cal-day-num{font-family:'DM Mono',monospace;font-size:12px;color:var(--text);margin-bottom:5px;width:22px;height:22px;display:flex;align-items:center;justify-content:center}
+  .cal-events{display:flex;flex-direction:column;gap:2px}
+  .cal-event{font-size:10px;padding:2px 5px;border-radius:3px;line-height:1.4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:'Noto Sans SC',sans-serif;font-weight:400}
+  .ev-design{background:var(--design-tag-light);color:var(--design-tag)}
+  .ev-mkt{background:var(--mkt-tag-light);color:var(--mkt-tag)}
+  .ev-more{background:var(--border-light);color:var(--muted)}
+
+  /* Cards */
+  .cards{display:flex;flex-direction:column;gap:20px}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;animation:fadeSlide .25s ease both}
+  @keyframes fadeSlide{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+  .card-header{padding:14px 24px;display:flex;align-items:center;justify-content:space-between}
+  .card-header-left{display:flex;align-items:center;gap:12px}
+  .live-badge{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.12em;background:rgba(255,255,255,.2);color:#fff;padding:3px 10px;border-radius:4px;text-transform:uppercase}
+  .host-badge{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.06em;color:rgba(255,255,255,.9);padding:3px 10px;border-radius:4px;background:rgba(255,255,255,.15)}
+  .card-date{font-family:'DM Mono',monospace;font-size:18px;font-weight:500;letter-spacing:.04em;color:#fff}
+  .card-weekday{font-size:12px;opacity:.55;font-family:'DM Mono',monospace;color:#fff}
+  .remove-btn{background:none;border:1px solid rgba(255,255,255,.2);border-radius:6px;color:rgba(255,255,255,.6);font-size:12px;cursor:pointer;padding:4px 10px;font-family:'DM Mono',monospace;transition:all .15s}
+  .remove-btn:hover{background:rgba(255,255,255,.1);color:#fff}
+
+  /* Progress bar */
+  .progress-wrap{padding:0 24px 0;background:var(--surface);border-bottom:1px solid var(--border-light)}
+  .progress-row{display:flex;align-items:center;gap:10px;padding:10px 0}
+  .progress-bar-track{flex:1;height:4px;background:var(--border-light);border-radius:2px;overflow:hidden}
+  .progress-bar-fill{height:100%;border-radius:2px;background:var(--green);transition:width .3s ease}
+  .progress-label{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);white-space:nowrap;letter-spacing:.04em}
+  .progress-label span{color:var(--text);font-weight:500}
+
+  .teams{display:grid;grid-template-columns:1fr 1fr}
+  @media(max-width:600px){.teams{grid-template-columns:1fr}}
+  .team-col{padding:16px 24px;border-right:1px solid var(--border-light)}
+  .team-col:last-child{border-right:none}
+  .team-label{display:inline-flex;align-items:center;gap:6px;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;margin-bottom:12px;padding:4px 10px;border-radius:4px}
+  .team-label.design{background:var(--design-tag-light);color:var(--design-tag)}
+  .team-label.mkt{background:var(--mkt-tag-light);color:var(--mkt-tag)}
+
+  /* Task rows with checkbox */
+  .task{display:flex;align-items:center;padding:8px 0;border-bottom:1px solid var(--border-light);gap:10px;cursor:pointer;transition:background .1s}
+  .task:last-child{border-bottom:none;padding-bottom:0}
+  .task:hover{background:var(--bg);margin:0 -8px;padding-left:8px;padding-right:8px;border-radius:6px}
+
+  /* custom checkbox */
+  .task-cb{width:16px;height:16px;border:1.5px solid var(--border);border-radius:4px;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .15s;background:var(--bg)}
+  .task-cb.checked{background:var(--green);border-color:var(--green)}
+  .task-cb.checked::after{content:'';display:block;width:4px;height:7px;border:2px solid #fff;border-top:none;border-left:none;transform:rotate(45deg) translate(-1px,-1px)}
+
+  .task-name{font-size:13px;color:var(--text);flex:1;line-height:1.4;transition:color .15s}
+  .task-name.done{color:var(--muted);text-decoration:line-through;text-decoration-color:var(--border)}
+  .task-meta{display:flex;align-items:center;gap:8px;flex-shrink:0}
+  .task-date-chip{font-family:'DM Mono',monospace;font-size:12px;font-weight:500;padding:3px 10px;border-radius:6px;white-space:nowrap}
+  .chip-normal{background:var(--border-light);color:var(--text)}
+  .chip-warn{background:var(--gold-light);color:var(--gold)}
+  .chip-urgent{background:var(--accent-light);color:var(--accent)}
+  .chip-done-date{background:var(--green-light);color:var(--green)}
+  .countdown{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);white-space:nowrap}
+
+  .note-bar{padding:10px 24px;background:var(--green-light);border-top:1px solid var(--border-light);font-size:12px;color:var(--green);font-family:'DM Mono',monospace;letter-spacing:.02em}
+
+  .empty{text-align:center;padding:60px 20px;color:var(--muted);font-family:'DM Mono',monospace;font-size:13px;letter-spacing:.06em;border:1px dashed var(--border);border-radius:12px;line-height:2}
+  .empty-icon{font-size:32px;display:block;margin-bottom:12px;opacity:.3}
+
+  .view-panel{display:none}
+  .view-panel.active{display:block}
+
+  @media print{
+    .header{position:static}
+    .input-panel,.remove-btn,.add-btn,.tabbar-wrap,.top-actions,.no-print{display:none!important}
+    body{background:white}
+    .cal-wrap{break-inside:avoid;border:1px solid #ccc}
+    .cal-nav-btn{display:none!important}
+    .print-cal-btn{display:none!important}
+    .view-panel{display:none!important}
+    #panel-calendar{display:block!important}
+    .legend{display:flex!important}
+    .summary{display:none}
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <div class="header-title">直播排期系统</div>
+    <div class="header-sub">Livestream Schedule Manager — Internal</div>
+  </div>
+  <div class="header-sub" id="today-label"></div>
+</div>
+
+<div class="tabbar-wrap">
+  <div class="tabbar">
+    <button class="tab active" id="tab-calendar" onclick="switchTab('calendar')">📅 日历视图</button>
+    <button class="tab" id="tab-list" onclick="switchTab('list')">☰ 排期 &amp; Checklist</button>
+  </div>
+</div>
+
+<div class="container">
+
+  <div class="input-panel">
+    <div class="field">
+      <label>主播</label>
+      <div class="sel-wrap"><select id="hostSelect"></select></div>
+    </div>
+    <div class="field">
+      <label>类型</label>
+      <div class="sel-wrap">
+        <select id="typeSelect">
+          <option value="直播">直播</option>
+          <option value="团购">团购</option>
+        </select>
+      </div>
+    </div>
+    <div class="field">
+      <label>直播日期</label>
+      <input type="date" id="dateInput" />
+    </div>
+    <button class="add-btn" onclick="addDate()">＋ 加入排期</button>
+  </div>
+
+  <div class="top-actions" id="top-actions" style="display:none">
+    <div class="filter-bar" id="filter-bar"><span class="filter-label">筛选</span></div>
+    <div class="top-right">
+      <button class="ghost-btn" onclick="clearAll()">清除全部</button>
+      <button class="ghost-btn" onclick="window.print()">列印 / 导出</button>
+    </div>
+  </div>
+
+  <div class="summary" id="summary"></div>
+
+  <!-- CALENDAR VIEW -->
+  <div class="view-panel active" id="panel-calendar">
+    <div class="legend" id="cal-legend"></div>
+    <div class="cal-wrap">
+      <div class="cal-nav">
+        <button class="cal-nav-btn" onclick="calShift(-1)">&#8249;</button>
+        <div class="cal-month-label" id="cal-month-label"></div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <button class="cal-nav-btn" onclick="calShift(1)">&#8250;</button>
+          <button onclick="printCal()" style="height:32px;padding:0 14px;background:var(--text);color:var(--bg);border:none;border-radius:6px;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.08em;cursor:pointer;display:flex;align-items:center;gap:6px;transition:opacity .15s" onmouseover="this.style.opacity='.8'" onmouseout="this.style.opacity='1'">
+            <svg width="13" height="13" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="1" width="10" height="8" rx="1" stroke="currentColor" stroke-width="1.4"/><rect x="1" y="6" width="14" height="7" rx="1" stroke="currentColor" stroke-width="1.4"/><rect x="4" y="10" width="8" height="5" rx="0.5" fill="currentColor"/><circle cx="12" cy="9" r="1" fill="currentColor"/></svg>
+            列印日历
+          </button>
+        </div>
+      </div>
+      <div id="cal-grid"></div>
+    </div>
+  </div>
+
+  <!-- LIST + CHECKLIST VIEW -->
+  <div class="view-panel" id="panel-list">
+    <div class="legend">
+      <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div>已过 / 今天</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#ccc"></div>正常</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--gold)"></div>3天内</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--accent)"></div>紧急 ≤1天</div>
+      <div class="legend-item" style="margin-left:8px">
+        <div style="width:16px;height:16px;border-radius:4px;background:var(--green);display:flex;align-items:center;justify-content:center">
+          <div style="width:4px;height:7px;border:2px solid #fff;border-top:none;border-left:none;transform:rotate(45deg) translate(-1px,-1px)"></div>
+        </div>
+        点击打勾完成
+      </div>
+    </div>
+    <div id="cards-container">
+      <div class="empty"><span class="empty-icon">📋</span>输入直播日期后，系统自动生成各部门任务</div>
+    </div>
+  </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const WD=['日','一','二','三','四','五','六'];
+const MONTHS=['一月','二月','三月','四月','五月','六月','七月','八月','九月','十月','十一月','十二月'];
+
+const HOSTS=[
+  {id:'elle',  name:'Elle Onni', color:'#8B7D5A', light:'#F3EFE6'},
+  {id:'apple', name:'Apple',     color:'#2A7A54', light:'#E2F2EA'},
+  {id:'kiky',  name:'Kiky',      color:'#5A4FA8', light:'#ECEAFB'},
+];
+function hostById(id){return HOSTS.find(h=>h.id===id)||HOSTS[0]}
+
+/* ── PERSISTENCE ── */
+const entries=[];
+const checks=new Set();
+const supabase = window.supabase.createClient('https://xuibibtaemaeeoodtxts.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh1aWJpYnRhZW1hZWVvb2R0eHRzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUxOTc5NTksImV4cCI6MjA5MDc3Mzk1OX0.Oi5owJJG2uee63oROzU5Dd5daulR95Z_-gWiS0EfgPk');
+async function saveState(){
+  const rows = entries.map(e=>({ entry_key:[e.ds,e.hostId,e.type].join('|'), ds:e.ds, host_id:e.hostId, schedule_type:e.type, checks:[...checks].filter(k=>k.startsWith([e.ds,e.hostId,e.type].join('|')+'|')) }));
+  const { data: userWrap } = await supabase.auth.getUser();
+  const userId = userWrap && userWrap.user ? userWrap.user.id : null;
+  await supabase.from('livestream_schedules').delete().eq('scope','shared');
+  if(rows.length){
+    await supabase.from('livestream_schedules').insert(rows.map(r=>Object.assign({user_id:userId, scope:'shared'}, r)));
+  }
+}
+async function loadState(){
+  const { data } = await supabase.from('livestream_schedules').select('*').eq('scope','shared').order('ds',{ascending:true});
+  entries.length=0; checks.clear();
+  (data||[]).forEach(r=>{ entries.push({ds:r.ds, hostId:r.host_id, type:r.schedule_type}); (r.checks||[]).forEach(k=>checks.add(k)); });
+}
+
+
+// populate host select AFTER entries declared
+const hostSelectEl=document.getElementById('hostSelect');
+HOSTS.forEach(h=>{const o=document.createElement('option');o.value=h.id;o.textContent=h.name;hostSelectEl.appendChild(o)});
+
+let activeFilter='all';
+let calYear=new Date().getFullYear();
+let calMonth=new Date().getMonth();
+const today=new Date();today.setHours(0,0,0,0);
+
+document.getElementById('today-label').textContent=
+  today.getFullYear()+'.'+(today.getMonth()+1).toString().padStart(2,'0')+'.'+today.getDate().toString().padStart(2,'0');
+
+document.getElementById('dateInput').addEventListener('keydown',e=>{if(e.key==='Enter')addDate()});
+
+function switchTab(tab){
+  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.view-panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+  document.getElementById('panel-'+tab).classList.add('active');
+}
+
+/* helpers */
+function offset(ds,n){const d=new Date(ds+'T00:00:00');d.setDate(d.getDate()+n);return d}
+function fmt(d){return(d.getMonth()+1)+'/'+d.getDate()}
+function toKey(d){return d.getFullYear()+'-'+(d.getMonth()+1).toString().padStart(2,'0')+'-'+d.getDate().toString().padStart(2,'0')}
+function daysLeft(d){return Math.ceil((d-today)/(1000*60*60*24))}
+function chipClass(d){const n=daysLeft(d);if(n<=0)return 'chip-done-date';if(n<=1)return 'chip-urgent';if(n<=3)return 'chip-warn';return 'chip-normal'}
+function countdownTxt(d){const n=daysLeft(d);if(n<0)return '已过'+Math.abs(n)+'天';if(n===0)return '今天';return n+'天后'}
+
+function filteredEntries(){
+  if(activeFilter==='all')return entries;
+  return entries.filter(e=>e.hostId===activeFilter);
+}
+function setFilter(f){
+  activeFilter=f;
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.toggle('on',b.dataset.f===f));
+  render();
+}
+
+/* checklist key */
+function ckKey(ds,hostId,type,taskKey){return ds+'|'+hostId+'|'+type+'|'+taskKey}
+
+function toggleCheck(ds,hostId,type,taskKey){
+  const k=ckKey(ds,hostId,type,taskKey);
+  if(checks.has(k))checks.delete(k);else checks.add(k);
+  saveState();
+  // update just this card's UI without full re-render
+  updateCardProgress(ds,hostId,type);
+  const row=document.querySelector(`[data-ck="${CSS.escape(k)}"]`);
+  if(row){
+    const cb=row.querySelector('.task-cb');
+    const nm=row.querySelector('.task-name');
+    const isChecked=checks.has(k);
+    cb.classList.toggle('checked',isChecked);
+    nm.classList.toggle('done',isChecked);
+  }
+}
+
+function updateCardProgress(ds,hostId,type){
+  const cardId='card-'+ds+'-'+hostId+'-'+type;
+  const card=document.getElementById(cardId);
+  if(!card)return;
+  const allRows=card.querySelectorAll('[data-ck]');
+  const total=allRows.length;
+  const done=[...allRows].filter(r=>checks.has(r.dataset.ck)).length;
+  const pct=total?Math.round(done/total*100):0;
+  const fill=card.querySelector('.progress-bar-fill');
+  const lbl=card.querySelector('.progress-label span');
+  if(fill)fill.style.width=pct+'%';
+  if(lbl)lbl.textContent=done+'/'+total;
+}
+
+/* define tasks per team */
+function designTasks(ds, liveD, type){
+  const tasks = [
+    {key:'d1', name:'海报第一版交给Kei', date:offset(ds,-5)},
+    {key:'d2', name:'商家有24h检查配套图', date:offset(ds,-4)},
+    {key:'d3', name:'客服准备发布', date:offset(ds,-3)},
+  ];
+
+  if(type === '直播'){
+    tasks.push(
+      {key:'d4', name:'手稿完成', date:offset(ds,-2)},
+      {key:'d5', name:'Lower Third v1交给Production Team', date:offset(ds,-1)},
+      {key:'d6', name:'Lower Third Final', date:liveD}
+    );
+  }
+
+  return tasks;
+}
+function mktTasks(ds){
+  return [
+    {key:'m1', name:'配套截止', date:offset(ds,-10)},
+  ];
+}
+
+/* task row HTML */
+function taskRowHTML(t, ds, hostId, type){
+  const k=ckKey(ds,hostId,type,t.key);
+  const checked=checks.has(k);
+  const cls=chipClass(t.date);
+  const cd=countdownTxt(t.date);
+  return `<div class="task" data-ck="${k}" onclick="toggleCheck('${ds}','${hostId}','${type}','${t.key}')">
+    <div class="task-cb${checked?' checked':''}"></div>
+    <div class="task-name${checked?' done':''}">${t.name}</div>
+    <div class="task-meta">
+      <span class="countdown">${cd}</span>
+      <span class="task-date-chip ${cls}">${fmt(t.date)}</span>
+    </div>
+  </div>`;
+}
+
+/* build event map for calendar */
+function buildEvMap(){
+  const map={};
+  function add(key,label,cls,tip,color,textColor){
+    if(!map[key])map[key]=[];
+    map[key].push({label,cls,tip,color,textColor});
+  }
+  for(const en of filteredEntries()){
+    const h=hostById(en.hostId);
+    const ds=en.ds;
+    const liveD=new Date(ds+'T00:00:00');
+    add(toKey(liveD),'● '+h.name+' · '+en.type,'ev-live',h.name+' '+en.type+'天',h.color,'#fff');
+    add(toKey(offset(ds,-5)),'海报第一版→Kei','ev-design','海报第一版交给Kei（直播前5天）');
+    add(toKey(offset(ds,-4)),'商家检查24h','ev-design','商家有24h检查配套图（直播前4天）');
+    add(toKey(offset(ds,-3)),'客服准备发布','ev-design','客服准备发布（直播前3天）');
+    if(en.type === '直播'){
+  add(
+    toKey(offset(ds,-2)),
+    '手稿完成',
+    'ev-design',
+    '手稿完成（直播前2天）'
+  );
+  add(
+    toKey(offset(ds,-1)),
+    'LT v1→Prod Team',
+    'ev-design',
+    'Lower Third v1交给Production Team（直播前1天）'
+  );
+}
+    add(toKey(offset(ds,-10)),'配套截止','ev-mkt','Marketing 配套截止（直播前10天）');
+  }
+  return map;
+}
+
+/* calendar */
+function calShift(n){calMonth+=n;if(calMonth>11){calMonth=0;calYear++}if(calMonth<0){calMonth=11;calYear--}renderCalendar()}
+
+function renderCalendar(){
+  document.getElementById('cal-month-label').textContent=calYear+' · '+MONTHS[calMonth];
+  const evMap=buildEvMap();
+  const firstDow=new Date(calYear,calMonth,1).getDay();
+  const daysInMon=new Date(calYear,calMonth+1,0).getDate();
+  const daysInPrev=new Date(calYear,calMonth,0).getDate();
+
+  let hdr='<div style="display:grid;grid-template-columns:repeat(7,1fr)">';
+  WD.forEach(d=>{hdr+=`<div class="cal-dow">${d}</div>`});
+  hdr+='</div>';
+
+  let cells=[];
+  for(let i=firstDow-1;i>=0;i--)cells.push(`<div class="cal-cell other-month"><div class="cal-day-num">${daysInPrev-i}</div></div>`);
+  for(let d=1;d<=daysInMon;d++){
+    const cellD=new Date(calYear,calMonth,d);
+    const key=toKey(cellD);
+    const isToday=cellD.getTime()===today.getTime();
+    let cls='cal-cell'+(isToday?' is-today':'');
+    const evs=evMap[key]||[];
+    const MAX=3;
+    let evHtml='<div class="cal-events">';
+    evs.slice(0,MAX).forEach(ev=>{
+      if(ev.color)evHtml+=`<div class="cal-event" style="background:${ev.color};color:${ev.textColor};font-weight:500" title="${ev.tip}">${ev.label}</div>`;
+      else evHtml+=`<div class="cal-event ${ev.cls}" title="${ev.tip}">${ev.label}</div>`;
+    });
+    if(evs.length>MAX)evHtml+=`<div class="cal-event ev-more">+${evs.length-MAX} 更多</div>`;
+    evHtml+='</div>';
+    cells.push(`<div class="${cls}"><div class="cal-day-num">${d}</div>${evHtml}</div>`);
+  }
+  const total=firstDow+daysInMon;
+  const tail=total%7===0?0:7-(total%7);
+  for(let d=1;d<=tail;d++)cells.push(`<div class="cal-cell other-month"><div class="cal-day-num">${d}</div></div>`);
+
+  let gridHtml='';
+  for(let r=0;r*7<cells.length;r++)gridHtml+=`<div style="display:grid;grid-template-columns:repeat(7,1fr)">${cells.slice(r*7,r*7+7).join('')}</div>`;
+  document.getElementById('cal-grid').innerHTML=hdr+gridHtml;
+
+  let legHtml='';
+  HOSTS.forEach(h=>{legHtml+=`<div class="legend-item"><div class="legend-dot" style="background:${h.color}"></div>${h.name}</div>`});
+  legHtml+=`<div class="legend-item"><div class="legend-sq" style="background:var(--design-tag-light);outline:1px solid var(--design-tag)"></div>Design 任务</div>`;
+  legHtml+=`<div class="legend-item"><div class="legend-sq" style="background:var(--mkt-tag-light);outline:1px solid var(--mkt-tag)"></div>Marketing 任务</div>`;
+  legHtml+=`<div class="legend-item"><div class="cal-day-num" style="background:var(--text);color:var(--bg);width:16px;height:16px;border-radius:50%;font-size:10px;display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace"></div>今天</div>`;
+  document.getElementById('cal-legend').innerHTML=legHtml;
+}
+
+/* list + checklist */
+function renderList(){
+  const container=document.getElementById('cards-container');
+  const fe=filteredEntries();
+  if(!fe.length){
+    container.innerHTML=`<div class="empty"><span class="empty-icon">📋</span>${entries.length?'没有符合筛选的排期':'输入直播日期后，系统自动生成各部门任务'}</div>`;
+    return;
+  }
+  let html='<div class="cards">';
+  for(const en of fe){
+    const {ds,hostId,type}=en;
+    const h=hostById(hostId);
+    const liveD=new Date(ds+'T00:00:00');
+    const isPast=daysLeft(liveD)<0;
+    const bgCol=isPast?'#6B6860':h.color;
+    const dTasks = designTasks(ds, liveD, type);
+    const mTasks=mktTasks(ds);
+    const allTasks=[...dTasks,...mTasks];
+    const totalTasks=allTasks.length;
+    const doneTasks=allTasks.filter(t=>checks.has(ckKey(ds,hostId,type,t.key))).length;
+    const pct=totalTasks?Math.round(doneTasks/totalTasks*100):0;
+    const cardId='card-'+ds+'-'+hostId+'-'+type;
+
+    html+=`<div class="card" id="${cardId}">
+      <div class="card-header" style="background:${bgCol}">
+        <div class="card-header-left">
+          <span class="live-badge">${isPast?'已结束':type}</span>
+          <span class="host-badge">${h.name}</span>
+          <div>
+            <div class="card-date">${liveD.getMonth()+1} / ${liveD.getDate()}</div>
+            <div class="card-weekday">星期${WD[liveD.getDay()]}${isPast?' · 已完成':''}</div>
+          </div>
+        </div>
+        <button class="remove-btn" onclick="removeEntry('${ds}','${hostId}','${type}')">移除</button>
+      </div>
+      <div class="progress-wrap">
+        <div class="progress-row">
+          <div class="progress-bar-track"><div class="progress-bar-fill" style="width:${pct}%"></div></div>
+          <div class="progress-label">完成 <span>${doneTasks}/${totalTasks}</span></div>
+        </div>
+      </div>
+      <div class="teams">
+        <div class="team-col">
+          <div class="team-label design">Design Team</div>
+          ${dTasks.map(t=>taskRowHTML(t,ds,hostId,type)).join('')}
+        </div>
+        <div class="team-col">
+          <div class="team-label mkt">Marketing Team</div>
+          ${mTasks.map(t=>taskRowHTML(t,ds,hostId,type)).join('')}
+          <div style="height:1px;background:var(--border-light);margin:16px 0 0"></div>
+          <div style="margin-top:14px;font-size:12px;color:var(--muted);line-height:1.9">
+            <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.08em;margin-bottom:6px">REMINDERS</div>
+            商家配套图：需在直播前4天内完成审查<br>
+            2nd版本确认后才可发给商家
+          </div>
+        </div>
+      </div>
+      <div class="note-bar">⚑ Design team 需要在2nd版本确认了才能发给商家 · 商家有24小时检查配套图（直播前4天）</div>
+    </div>`;
+  }
+  html+='</div>';
+  container.innerHTML=html;
+}
+
+/* master render */
+function render(){
+  const topActions=document.getElementById('top-actions');
+  const summary=document.getElementById('summary');
+  if(!entries.length){
+    topActions.style.display='none';
+    summary.innerHTML='';
+  } else {
+    topActions.style.display='flex';
+    let fbHtml='<span class="filter-label">筛选</span>';
+    fbHtml+=`<button class="filter-btn ${activeFilter==='all'?'on':''}" data-f="all" onclick="setFilter('all')">全部</button>`;
+    HOSTS.forEach(h=>{
+      if(!entries.some(e=>e.hostId===h.id))return;
+      fbHtml+=`<button class="filter-btn ${activeFilter===h.id?'on':''}" data-f="${h.id}" onclick="setFilter('${h.id}')" style="border-color:${activeFilter===h.id?h.color:''};color:${activeFilter===h.id?h.color:''}">
+        <span class="host-dot" style="background:${h.color}"></span>${h.name}
+      </button>`;
+    });
+    document.getElementById('filter-bar').innerHTML=fbHtml;
+    const fe=filteredEntries();
+    const upcoming=fe.filter(e=>daysLeft(new Date(e.ds+'T00:00:00'))>=0).length;
+    const past=fe.length-upcoming;
+    summary.innerHTML=`
+      <div class="summary-pill">总场次 <span>${fe.length}</span></div>
+      ${upcoming?`<div class="summary-pill">即将直播 <span>${upcoming}</span></div>`:''}
+      ${past?`<div class="summary-pill">已完成 <span>${past}</span></div>`:''}
+    `;
+  }
+  renderCalendar();
+  renderList();
+}
+
+function addDate(){
+  const v=document.getElementById('dateInput').value;
+  const hId=document.getElementById('hostSelect').value;
+  const typ=document.getElementById('typeSelect').value;
+  if(!v)return;
+  if(entries.some(e=>e.ds===v&&e.hostId===hId&&e.type===typ)){alert('此主播的日期与类型已存在');return}
+  entries.push({ds:v,hostId:hId,type:typ});
+  entries.sort((a,b)=>a.ds.localeCompare(b.ds));
+  saveState();
+  document.getElementById('dateInput').value='';
+  const d=new Date(v+'T00:00:00');calYear=d.getFullYear();calMonth=d.getMonth();
+  render();
+}
+
+function removeEntry(ds,hostId,type){
+  const i=entries.findIndex(e=>e.ds===ds&&e.hostId===hostId&&e.type===type);
+  if(i>-1)entries.splice(i,1);
+  for(const k of [...checks])if(k.startsWith(ds+'|'+hostId+'|'+type+'|'))checks.delete(k);
+  saveState();
+  render();
+}
+
+function clearAll(){
+  if(!confirm('确认清除所有排期？'))return;
+  entries.length=0;checks.clear();activeFilter='all';saveState();render();
+}
+
+function printCal(){
+  // Switch to calendar tab first, then print
+  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.view-panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('tab-calendar').classList.add('active');
+  document.getElementById('panel-calendar').classList.add('active');
+  setTimeout(()=>window.print(), 100);
+}
+
+
+async function initCloud(){
+  await loadState();
+  if(entries.length) render(); else renderCalendar();
+}
+// override mutating ops to sync cloud
+const _origToggleCheck = toggleCheck;
+toggleCheck = async function(ds,hostId,type,taskKey){ _origToggleCheck(ds,hostId,type,taskKey); await saveState(); };
+const _origAddDate = addDate;
+addDate = async function(){ _origAddDate(); await saveState(); };
+const _origRemoveEntry = removeEntry;
+removeEntry = async function(ds,hostId,type){ _origRemoveEntry(ds,hostId,type); await saveState(); };
+const _origClearAll = clearAll;
+clearAll = async function(){ if(!confirm('确认清除所有排期？'))return; entries.length=0; checks.clear(); activeFilter='all'; await saveState(); render(); };
+initCloud();
+
+</script>
+</body>
+</html>
