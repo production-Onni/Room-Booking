@@ -361,7 +361,10 @@ function updateCardProgress(ds,hostId,type){
 }
 
 /* define tasks per team */
-function designTasks(ds, liveD, type){
+function designTasks(ds, liveD, type, hostId){
+  const host = hostById(hostId);
+  const hostName = host.name;
+
   const tasks = [
     {key:'d1', name:'海报第一版交给Kei', date:offset(ds,-5)},
     {key:'d2', name:'商家有24h检查配套图', date:offset(ds,-4)},
@@ -370,14 +373,15 @@ function designTasks(ds, liveD, type){
 
   if(type === '直播'){
     tasks.push(
-      {key:'d4', name:'手稿完成', date:offset(ds,-2)},
-      {key:'d5', name:'Lower Third v1交给Production Team', date:offset(ds,-1)},
-      {key:'d6', name:'Lower Third Final', date:liveD}
+      {key:'d4', name:`${hostName}·直播｜手稿完成`, date:offset(ds,-2)},
+      {key:'d5', name:`${hostName}·直播｜LT v1`, date:offset(ds,-1)},
+      {key:'d6', name:`${hostName}·直播｜LT Final`, date:liveD}
     );
   }
 
   return tasks;
 }
+
 function mktTasks(ds){
   return [
     {key:'m1', name:'配套截止', date:offset(ds,-10)},
@@ -386,10 +390,11 @@ function mktTasks(ds){
 
 /* task row HTML */
 function taskRowHTML(t, ds, hostId, type){
-  const k=ckKey(ds,hostId,type,t.key);
-  const checked=checks.has(k);
-  const cls=chipClass(t.date);
-  const cd=countdownTxt(t.date);
+  const k = ckKey(ds,hostId,type,t.key);
+  const checked = checks.has(k);
+  const cls = chipClass(t.date);
+  const cd = countdownTxt(t.date);
+
   return `<div class="task" data-ck="${k}" onclick="toggleCheck('${ds}','${hostId}','${type}','${t.key}')">
     <div class="task-cb${checked?' checked':''}"></div>
     <div class="task-name${checked?' done':''}">${t.name}</div>
@@ -415,18 +420,18 @@ function buildEvMap(){
     add(toKey(offset(ds,-5)),'海报第一版→Kei','ev-design','海报第一版交给Kei（直播前5天）');
     add(toKey(offset(ds,-4)),'商家检查24h','ev-design','商家有24h检查配套图（直播前4天）');
     add(toKey(offset(ds,-3)),'客服准备发布','ev-design','客服准备发布（直播前3天）');
-    if(en.type === '直播'){
+if(en.type === '直播'){
   add(
     toKey(offset(ds,-2)),
-    '手稿完成',
+    h.name + '·直播｜手稿完成',
     'ev-design',
-    '手稿完成（直播前2天）'
+    h.name + ' 直播手稿完成（直播前2天）'
   );
   add(
-    toKey(offset(ds,-2)),
-    'LT v1→Prod Team',
+    toKey(offset(ds,-1)),
+    h.name + '·直播｜LT v1',
     'ev-design',
-    'Lower Third v1交给Production Team（直播前1天）'
+    h.name + ' 直播 Lower Third v1交给Production Team（直播前1天）'
   );
 }
     add(toKey(offset(ds,-10)),'配套截止','ev-mkt','Marketing 配套截止（直播前10天）');
@@ -497,7 +502,7 @@ function renderList(){
     const liveD=new Date(ds+'T00:00:00');
     const isPast=daysLeft(liveD)<0;
     const bgCol=isPast?'#6B6860':h.color;
-    const dTasks = designTasks(ds, liveD, type);
+    const dTasks = designTasks(ds, liveD, type, hostId);
     const mTasks=mktTasks(ds);
     const allTasks=[...dTasks,...mTasks];
     const totalTasks=allTasks.length;
