@@ -1763,22 +1763,77 @@ doAdminLogin = async function(){ await openAdminLogin(); };
 admLogout = function(){ admAuthed=false; goTo(0); };
 
 async function doLogin(){
-  var user = document.getElementById('login-user').value.trim();
-  var pass = document.getElementById('login-pass').value;
+  var userEl = document.getElementById('login-user');
+  var passEl = document.getElementById('login-pass');
   var err = document.getElementById('login-err');
-  err.textContent = '';
-  if(!user || !pass){ err.textContent = 'Please enter email and password.'; return; }
-  const { data, error } = await sb.auth.signInWithPassword({ email:user, password:pass });
-  if(error){ err.textContent = error.message || 'Incorrect email or password.'; return; }
-  currentUser = data.user;
-  await ensureProfile(currentUser);
-  hideLoginPage();
-  await cloudHydrate();
+  var btn = document.querySelector('#login-page .login-btn');
+  var user = userEl ? userEl.value.trim() : '';
+  var pass = passEl ? passEl.value : '';
+
+  if(err) err.textContent = '';
+  if(btn){ btn.disabled = true; btn.textContent = 'Signing In...'; }
+
+  if(!user || !pass){
+    if(err) err.textContent = 'Please enter email and password.';
+    if(btn){ btn.disabled = false; btn.textContent = 'Sign In'; }
+    return;
+  }
+
+  try {
+    const signInPromise = sb.auth.signInWithPassword({ email:user, password:pass });
+    const timeoutPromise = new Promise(function(_, reject){
+      setTimeout(function(){ reject(new Error('Login is taking too long. Please try again.')); }, 15000);
+    });
+
+    const result = await Promise.race([signInPromise, timeoutPromise]);
+    const data = result && result.data ? result.data : null;
+    const error = result && result.error ? result.error : null;
+
+    if(error){
+      if(err) err.textContent = error.message || 'Incorrect email or password.';
+      return;
+    }
+
+    if(!data || !data.user){
+      if(err) err.textContent = 'Login failed. Please try again.';
+      return;
+    }
+
+    currentUser = data.user;
+    hideLoginPage();
+
+    Promise.allSettled([
+      ensureProfile(currentUser),
+      cloudHydrate()
+    ]).then(function(results){
+      var profileResult = results[0];
+      var hydrateResult = results[1];
+      if(profileResult && profileResult.status === 'rejected') console.error('ensureProfile failed', profileResult.reason);
+      if(hydrateResult && hydrateResult.status === 'rejected') console.error('cloudHydrate failed', hydrateResult.reason);
+    });
+  } catch(loginErr) {
+    console.error('doLogin error', loginErr);
+    if(err) err.textContent = loginErr && loginErr.message ? loginErr.message : 'Login failed. Please try again.';
+  } finally {
+    if(btn){ btn.disabled = false; btn.textContent = 'Sign In'; }
+  }
 }
 
 function showSetPasswordPage() {
-  document.getElementById('login-page').style.display = 'none';
-  document.getElementById('set-password-page').style.display = 'flex';
+  var loginPage = document.getElementById('login-page');
+  var setPasswordPage = document.getElementById('set-password-page');
+  if(loginPage) loginPage.style.display = 'none';
+  if(setPasswordPage) setPasswordPage.style.display = 'flex';
+}
+
+function showLoginPage() {
+  var loginPage = document.getElementById('login-page');
+  var setPasswordPage = document.getElementById('set-password-page');
+  if(setPasswordPage) setPasswordPage.style.display = 'none';
+  if(loginPage) {
+    loginPage.classList.remove('hide');
+    loginPage.style.display = 'flex';
+  }
 }
 
 function togglePass(){
@@ -1810,37 +1865,48 @@ async function setFirstPassword() {
   const pass1 = document.getElementById('set-pass-1').value.trim();
   const pass2 = document.getElementById('set-pass-2').value.trim();
   const err = document.getElementById('set-pass-err');
+  const btn = document.querySelector('#set-password-page .login-btn');
+
   err.textContent = '';
+  if(btn){ btn.disabled = true; btn.textContent = 'Saving...'; }
 
-  if (!pass1 || !pass2) {
-    err.textContent = 'Please enter and confirm your password.';
-    return;
-  }
-  if (pass1.length < 6) {
-    err.textContent = 'Password must be at least 6 characters.';
-    return;
-  }
-  if (pass1 !== pass2) {
-    err.textContent = 'Passwords do not match.';
-    return;
-  }
+  try {
+    if (!pass1 || !pass2) {
+      err.textContent = 'Please enter and confirm your password.';
+      return;
+    }
+    if (pass1.length < 6) {
+      err.textContent = 'Password must be at least 6 characters.';
+      return;
+    }
+    if (pass1 !== pass2) {
+      err.textContent = 'Passwords do not match.';
+      return;
+    }
 
-  const { error } = await sb.auth.updateUser({ password: pass1 });
-  if (error) {
-    err.textContent = error.message || 'Failed to set password.';
-    return;
-  }
+    const { error } = await sb.auth.updateUser({ password: pass1 });
+    if (error) {
+      err.textContent = error.message || 'Failed to set password.';
+      return;
+    }
 
-  alert('Password set successfully. Please sign in.');
-  await sb.auth.signOut();
-  document.getElementById('set-password-page').style.display = 'none';
-  document.getElementById('login-page').style.display = 'flex';
-  document.getElementById('set-pass-1').value = '';
-  document.getElementById('set-pass-2').value = '';
+    alert('Password set successfully. Please sign in.');
+    await sb.auth.signOut();
+    document.getElementById('set-pass-1').value = '';
+    document.getElementById('set-pass-2').value = '';
+    showLoginPage();
+  } catch (e) {
+    console.error('setFirstPassword error', e);
+    err.textContent = e && e.message ? e.message : 'Failed to set password.';
+  } finally {
+    if(btn){ btn.disabled = false; btn.textContent = 'Set Password'; }
+  }
 }
 
-document.getElementById('login-user').addEventListener('keydown', function(e){ if(e.key==='Enter') doLogin(); });
-document.getElementById('login-pass').addEventListener('keydown', function(e){ if(e.key==='Enter') doLogin(); });
+var _loginUserEl = document.getElementById('login-user');
+var _loginPassEl = document.getElementById('login-pass');
+if(_loginUserEl) _loginUserEl.addEventListener('keydown', function(e){ if(e.key==='Enter') doLogin(); });
+if(_loginPassEl) _loginPassEl.addEventListener('keydown', function(e){ if(e.key==='Enter') doLogin(); });
 
 function shouldShowSetPasswordPage() {
   const hash = window.location.hash || '';
@@ -1856,39 +1922,56 @@ function shouldShowSetPasswordPage() {
 }
 
 (async function initSupabasePortal(){
-  const isPasswordSetupFlow = shouldShowSetPasswordPage();
-  const { data } = await sb.auth.getSession();
-
-  if (isPasswordSetupFlow) {
-    showSetPasswordPage();
-    return;
-  }
-
-  if (data && data.session && data.session.user) {
-    currentUser = data.session.user;
-    await ensureProfile(currentUser);
-    hideLoginPage();
-    await cloudHydrate();
-  }
-})();
-
-sb.auth.onAuthStateChange(async function(event, session) {
-  if (
-    event === 'PASSWORD_RECOVERY' ||
-    event === 'SIGNED_IN' ||
-    shouldShowSetPasswordPage()
-  ) {
+  try {
     if (shouldShowSetPasswordPage()) {
       showSetPasswordPage();
       return;
     }
+
+    const { data } = await sb.auth.getSession();
+    if (data && data.session && data.session.user) {
+      currentUser = data.session.user;
+      hideLoginPage();
+      Promise.allSettled([
+        ensureProfile(currentUser),
+        cloudHydrate()
+      ]).then(function(results){
+        var profileResult = results[0];
+        var hydrateResult = results[1];
+        if(profileResult && profileResult.status === 'rejected') console.error('ensureProfile failed', profileResult.reason);
+        if(hydrateResult && hydrateResult.status === 'rejected') console.error('cloudHydrate failed', hydrateResult.reason);
+      });
+    } else {
+      showLoginPage();
+    }
+  } catch (e) {
+    console.error('initSupabasePortal error', e);
+    showLoginPage();
+  }
+})();
+
+sb.auth.onAuthStateChange(function(event, session) {
+  if (shouldShowSetPasswordPage()) {
+    showSetPasswordPage();
+    return;
   }
 
-  if (session && session.user && !shouldShowSetPasswordPage()) {
+  if (session && session.user) {
     currentUser = session.user;
-    await ensureProfile(currentUser);
     hideLoginPage();
-    await cloudHydrate();
+    Promise.allSettled([
+      ensureProfile(currentUser),
+      cloudHydrate()
+    ]).then(function(results){
+      var profileResult = results[0];
+      var hydrateResult = results[1];
+      if(profileResult && profileResult.status === 'rejected') console.error('ensureProfile failed', profileResult.reason);
+      if(hydrateResult && hydrateResult.status === 'rejected') console.error('cloudHydrate failed', hydrateResult.reason);
+    });
+  } else {
+    currentUser = null;
+    currentProfile = null;
+    if (!shouldShowSetPasswordPage()) showLoginPage();
   }
 });
 </script>
