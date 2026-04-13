@@ -1842,21 +1842,27 @@ async function setFirstPassword() {
 document.getElementById('login-user').addEventListener('keydown', function(e){ if(e.key==='Enter') doLogin(); });
 document.getElementById('login-pass').addEventListener('keydown', function(e){ if(e.key==='Enter') doLogin(); });
 
-(async function initSupabasePortal(){
+function shouldShowSetPasswordPage() {
   const hash = window.location.hash || '';
   const search = window.location.search || '';
-  const isInviteLink =
+  return (
     hash.includes('type=invite') ||
     hash.includes('type=recovery') ||
+    hash.includes('access_token=') ||
     search.includes('type=invite') ||
-    search.includes('type=recovery');
+    search.includes('type=recovery') ||
+    search.includes('access_token=')
+  );
+}
 
+(async function initSupabasePortal(){
+  const isPasswordSetupFlow = shouldShowSetPasswordPage();
   const { data } = await sb.auth.getSession();
 
-  if (isInviteLink) {
-  showSetPasswordPage();
-  return;
-}
+  if (isPasswordSetupFlow) {
+    showSetPasswordPage();
+    return;
+  }
 
   if (data && data.session && data.session.user) {
     currentUser = data.session.user;
@@ -1865,6 +1871,26 @@ document.getElementById('login-pass').addEventListener('keydown', function(e){ i
     await cloudHydrate();
   }
 })();
+
+sb.auth.onAuthStateChange(async function(event, session) {
+  if (
+    event === 'PASSWORD_RECOVERY' ||
+    event === 'SIGNED_IN' ||
+    shouldShowSetPasswordPage()
+  ) {
+    if (shouldShowSetPasswordPage()) {
+      showSetPasswordPage();
+      return;
+    }
+  }
+
+  if (session && session.user && !shouldShowSetPasswordPage()) {
+    currentUser = session.user;
+    await ensureProfile(currentUser);
+    hideLoginPage();
+    await cloudHydrate();
+  }
+});
 </script>
 
 </body>
