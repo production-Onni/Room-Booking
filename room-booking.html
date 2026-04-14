@@ -1231,7 +1231,7 @@ function openLivestreamSchedule(){
   ensureLivestreamLoaded();
   goTo(9);
 }
-function goHome(){ st.room=null; st.date=null; st.time=null; window.location.href='room-booking.html'; }
+function goHome(){ st.room=null; st.date=null; st.time=null; window.location.href='index.html'; }
 function toggleDark(){ document.body.classList.toggle('dark'); var isDark=document.body.classList.contains('dark'); document.getElementById('dark-toggle').textContent=isDark?'☀️':'🌙'; try{ localStorage.setItem('darkMode',isDark?'1':'0'); }catch(e){} }
 try{ if(localStorage.getItem('darkMode')==='1'){ document.body.classList.add('dark'); document.getElementById('dark-toggle').textContent='☀️'; } }catch(e){}
 var lfFiles=[]; var lfPeriodVal=''; var lfTypeVal='';
