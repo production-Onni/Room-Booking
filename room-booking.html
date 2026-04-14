@@ -1105,6 +1105,89 @@ function doSubmit(name,note,dateStr,btn){
   showToast('Booking confirmed! ✓'); finalise(b);
 }
 function finalise(b){ st.bookings.unshift(b); document.getElementById('inp-name').value=''; document.getElementById('inp-note').value=''; st.room=null; st.date=null; st.time=null; var btn=document.getElementById('btn-sub'); btn.disabled=false; btn.innerHTML='Confirm Booking &#8594;'; save(); updCount(); renderBookings(); setTimeout(function(){ b.status='confirmed'; renderBookings(); save(); },3000); goTo(1); }
+  async function cloudLoadBookings(){
+  const { data, error } = await sb.from('bookings').select('*').order('created_at', { ascending:false });
+  if(error){
+    console.error(error);
+    showToast('Booking sync error');
+    return;
+  }
+  st.bookings = (data || []).map(function(r){
+    return Object.assign({}, r.payload || {}, {
+      id: (r.id || (r.payload && r.payload.id))
+    });
+  });
+  updCount();
+  renderBookings();
+  if(typeof renderMB === 'function') renderMB();
+}
+
+async function cloudInsertBooking(b){
+  const row = {
+    id: String(b.id),
+    user_id: currentUser ? currentUser.id : 'local-user',
+    payload: b
+  };
+  const { error } = await sb.from('bookings').upsert(row, { onConflict:'id' });
+  if(error) throw error;
+}
+
+async function cloudDeleteBooking(id){
+  const { error } = await sb.from('bookings').delete().eq('id', String(id));
+  if(error) throw error;
+}
+
+const _origFinalise = finalise;
+finalise = async function(b){
+  try{
+    st.bookings.unshift(b);
+    document.getElementById('inp-name').value = '';
+    document.getElementById('inp-note').value = '';
+    st.room = null;
+    st.date = null;
+    st.time = null;
+
+    var btn = document.getElementById('btn-sub');
+    btn.disabled = false;
+    btn.innerHTML = 'Confirm Booking &#8594;';
+
+    updCount();
+    renderBookings();
+    if(typeof renderMB === 'function') renderMB();
+    goTo(1);
+
+    await cloudInsertBooking(b);
+
+    setTimeout(function(){
+      b.status = 'confirmed';
+      renderBookings();
+      if(typeof renderMB === 'function') renderMB();
+      cloudInsertBooking(b);
+    }, 3000);
+  }catch(err){
+    console.error(err);
+    showToast('Booking save failed');
+  }
+};
+
+const _origCancelBooking = cancelBooking;
+cancelBooking = async function(id){
+  st.bookings = st.bookings.filter(function(b){
+    return b.id !== id;
+  });
+
+  updCount();
+  renderBookings();
+  if(typeof renderMB === 'function') renderMB();
+
+  try{
+    await cloudDeleteBooking(id);
+    showToast('Booking cancelled');
+  }catch(err){
+    console.error(err);
+    showToast('Cancel failed');
+  }
+};
 function renderBookings(){
   var list=document.getElementById('blist');
   if(!st.bookings.length){
@@ -1148,7 +1231,7 @@ function openLivestreamSchedule(){
   ensureLivestreamLoaded();
   goTo(9);
 }
-function goHome(){ st.room=null; st.date=null; st.time=null; window.location.href='index.html'; }
+function goHome(){ st.room=null; st.date=null; st.time=null; window.location.href='room-booking.html'; }
 function toggleDark(){ document.body.classList.toggle('dark'); var isDark=document.body.classList.contains('dark'); document.getElementById('dark-toggle').textContent=isDark?'☀️':'🌙'; try{ localStorage.setItem('darkMode',isDark?'1':'0'); }catch(e){} }
 try{ if(localStorage.getItem('darkMode')==='1'){ document.body.classList.add('dark'); document.getElementById('dark-toggle').textContent='☀️'; } }catch(e){}
 var lfFiles=[]; var lfPeriodVal=''; var lfTypeVal='';
