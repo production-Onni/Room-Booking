@@ -418,23 +418,51 @@ function selectRoom(id){
 
 /* ── CONFIRM TIME → details page ── */
 function confirmTime(){
-  var t=document.getElementById('inp-time').value.trim();
-  if(!t){showToast('Please enter a time');return;}
-  selTime=t;
+  var t = document.getElementById('inp-time').value.trim();
+  if(!t){
+    showToast('Please enter a time');
+    return;
+  }
 
-  document.getElementById('details-date-label').textContent=selDateLabel;
+  var parsed = parseTimeRange(t);
+  if(!parsed){
+    showToast('Use format like 10:00 - 14:00 or 8pm - 12am');
+    return;
+  }
 
-  var icon=document.getElementById('det-sum-icon');
-  icon.textContent=selRoom.icon;
-  icon.className='sum-icon '+selRoom.ri;
-  document.getElementById('det-sum-room').textContent=selRoom.name;
-  document.getElementById('det-sum-meta').textContent=selDateLabel+' · '+selTime;
+  var roomId = Object.keys(rooms).find(function(k){
+    return rooms[k] === selRoom;
+  });
 
-  document.getElementById('inp-name').value='';
-  document.getElementById('inp-note').value='';
+  var check = findRoomConflict(selDateStr, roomId, t);
+
+  if(check.invalid){
+    showToast('Invalid time format');
+    return;
+  }
+
+  if(check.conflict){
+    showToast('This room is already booked for that time');
+    return;
+  }
+
+  selTime = t;
+
+  document.getElementById('details-date-label').textContent = selDateLabel;
+
+  var icon = document.getElementById('det-sum-icon');
+  icon.textContent = selRoom.icon;
+  icon.className = 'sum-icon ' + selRoom.ri;
+  document.getElementById('det-sum-room').textContent = selRoom.name;
+  document.getElementById('det-sum-meta').textContent = selDateLabel + ' · ' + selTime;
+
+  document.getElementById('inp-name').value = '';
+  document.getElementById('inp-note').value = '';
 
   showPage('details');
-  setTimeout(function(){document.getElementById('inp-name').focus();},200);
+  setTimeout(function(){
+    document.getElementById('inp-name').focus();
+  }, 200);
 }
 
 /* ── SUBMIT BOOKING ── */
