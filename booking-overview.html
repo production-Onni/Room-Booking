@@ -10,100 +10,121 @@
 :root{
   --bg:#f6f6fb;--card:#fff;--border:#e5e7eb;
   --text:#1f2937;--muted:#6b7280;
-  --primary:#534AB7;--primary-light:#EEEDFE;
+  --primary:#534AB7;--primary-light:#EEEDFE;--primary-mid:#AFA9EC;
 }
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
 
 /* TOP BAR */
-.ov-topbar{display:flex;justify-content:space-between;align-items:center;padding:16px 28px;background:#fff;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;}
-.ov-title{font-family:'DM Serif Display',serif;font-size:22px;}
-.back-btn{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--muted);cursor:pointer;padding:6px 12px;border-radius:8px;border:none;background:none;font-family:'DM Sans',sans-serif;transition:background 0.15s;}
-.back-btn:hover{background:var(--bg);}
+.topbar{display:flex;justify-content:space-between;align-items:center;padding:16px 28px;background:#fff;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;}
+.topbar-title{font-family:'DM Serif Display',serif;font-size:22px;}
 
-/* PAGE */
-.ov-page{max-width:1100px;margin:0 auto;padding:24px 20px 60px;}
+/* PAGE WRAPPER */
+.page{display:none;max-width:1100px;margin:0 auto;padding:24px 20px 60px;}
+.page.active{display:block;}
 
 /* MONTH NAV */
-.ov-month-nav{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
-.ov-month-lbl{font-size:20px;font-weight:600;min-width:180px;}
-.ov-nav-btn{width:34px;height:34px;border-radius:50%;border:1px solid var(--border);background:#fff;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;transition:background 0.15s;}
-.ov-nav-btn:hover{background:var(--bg);}
+.month-nav{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+.month-lbl{font-size:20px;font-weight:600;min-width:180px;}
+.nav-btn{width:34px;height:34px;border-radius:50%;border:1px solid var(--border);background:#fff;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;transition:background 0.15s;}
+.nav-btn:hover{background:var(--bg);}
 .today-btn{padding:6px 14px;border:1px solid var(--border);background:#fff;border-radius:8px;font-size:13px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:background 0.15s;}
 .today-btn:hover{background:var(--bg);}
 
 /* LEGEND */
-.ov-legend{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px;}
-.ov-legend-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted);}
-.ov-legend-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+.legend{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px;}
+.legend-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted);}
+.legend-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
 
 /* CALENDAR */
-.ov-cal{background:#fff;border-radius:16px;border:1px solid var(--border);overflow:hidden;}
-.ov-cal-dh{display:grid;grid-template-columns:repeat(7,1fr);background:var(--primary);}
-.ov-cal-dl{text-align:center;padding:12px 0;font-size:12px;font-weight:500;color:rgba(255,255,255,0.85);}
-.ov-cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:var(--border);}
-.ov-day{background:#fff;padding:6px 8px;min-height:110px;position:relative;cursor:pointer;transition:background 0.12s;overflow:hidden;}
-.ov-day:hover{background:#f8f7ff;}
-.ov-day.ov-empty{background:var(--bg);cursor:default;}
-.ov-day.ov-today .ov-day-num{background:var(--primary);color:#fff;border-radius:50%;}
-.ov-day.ov-past{opacity:0.55;}
-.ov-day-num{font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px;width:26px;height:26px;display:flex;align-items:center;justify-content:center;}
-.ov-day-events{display:flex;flex-direction:column;gap:2px;}
-.ov-ev{font-size:10px;padding:2px 6px;border-radius:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:500;}
-.ov-ev-p{background:#EEEDFE;color:#534AB7;}
-.ov-ev-t{background:#E1F5EE;color:#0F6E56;}
-.ov-ev-c{background:#FAECE7;color:#993C1D;}
-.ov-ev-k{background:#FBEAF0;color:#993556;}
-.ov-ev-b{background:#E6F1FB;color:#185FA5;}
-.ov-ev-a{background:#FAEEDA;color:#854F0B;}
-.ov-ev-g{background:#EAF3DE;color:#0F6E56;}
-.ov-more{font-size:10px;color:var(--muted);padding:1px 4px;}
-.ov-day:not(.ov-empty):hover::after{content:'+ Add';position:absolute;top:5px;right:7px;font-size:10px;color:var(--primary);font-weight:600;}
+.cal{background:#fff;border-radius:16px;border:1px solid var(--border);overflow:hidden;}
+.cal-dh{display:grid;grid-template-columns:repeat(7,1fr);background:var(--primary);}
+.cal-dl{text-align:center;padding:12px 0;font-size:12px;font-weight:500;color:rgba(255,255,255,0.85);}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:var(--border);}
+.day{background:#fff;padding:6px 8px;min-height:110px;position:relative;cursor:pointer;transition:background 0.12s;overflow:hidden;}
+.day:hover:not(.empty){background:#f8f7ff;}
+.day.empty{background:var(--bg);cursor:default;}
+.day.today .day-num{background:var(--primary);color:#fff;border-radius:50%;}
+.day.past{opacity:0.55;}
+.day-num{font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px;width:26px;height:26px;display:flex;align-items:center;justify-content:center;}
+.day-events{display:flex;flex-direction:column;gap:2px;}
+.ev{font-size:10px;padding:2px 6px;border-radius:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:500;}
+.ev-p{background:#EEEDFE;color:#534AB7;}
+.ev-t{background:#E1F5EE;color:#0F6E56;}
+.ev-c{background:#FAECE7;color:#993C1D;}
+.ev-k{background:#FBEAF0;color:#993556;}
+.ev-b{background:#E6F1FB;color:#185FA5;}
+.ev-a{background:#FAEEDA;color:#854F0B;}
+.ev-g{background:#EAF3DE;color:#0F6E56;}
+.ev-more{font-size:10px;color:var(--muted);padding:1px 4px;}
+.day:not(.empty):hover::after{content:'+ Book';position:absolute;top:5px;right:7px;font-size:10px;color:var(--primary);font-weight:600;}
 
-/* POPUP */
-.bk-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.32);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity 0.2s;}
-.bk-overlay.show{opacity:1;pointer-events:all;}
-.bk-popup{background:#fff;border-radius:20px;width:100%;max-width:430px;box-shadow:0 20px 60px rgba(0,0,0,0.18);overflow:hidden;transform:translateY(10px) scale(0.97);transition:transform 0.2s;}
-.bk-overlay.show .bk-popup{transform:translateY(0) scale(1);}
-.bk-popup-header{background:var(--primary);padding:16px 20px;display:flex;align-items:center;justify-content:space-between;}
-.bk-popup-date{font-family:'DM Serif Display',serif;font-size:18px;color:#fff;}
-.bk-popup-close{background:rgba(255,255,255,0.15);border:none;color:#fff;width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:background 0.15s;}
-.bk-popup-close:hover{background:rgba(255,255,255,0.3);}
-.bk-popup-body{padding:20px;}
+/* BOOKING FLOW PAGES */
+.flow-header{display:flex;align-items:center;gap:14px;margin-bottom:24px;}
+.back-btn{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:500;color:var(--primary);background:var(--primary-light);border:1.5px solid var(--primary-mid);border-radius:10px;cursor:pointer;padding:8px 16px;transition:all 0.15s;flex-shrink:0;}
+.back-btn:hover{background:var(--primary);color:#fff;border-color:var(--primary);}
+.flow-date-badge{font-family:'DM Serif Display',serif;font-size:20px;color:var(--text);}
 
-/* existing */
-.bk-existing-title{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px;}
-.bk-existing-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;background:var(--bg);margin-bottom:6px;}
-.bk-existing-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
-.bk-existing-info{flex:1;}
-.bk-existing-room{font-size:12px;font-weight:500;}
-.bk-existing-meta{font-size:11px;color:var(--muted);margin-top:1px;}
-.bk-existing-cancel{background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;padding:2px 5px;border-radius:4px;transition:all 0.15s;}
-.bk-existing-cancel:hover{color:#993C1D;background:#FAECE7;}
-.bk-divider{height:1px;background:var(--border);margin:14px 0;}
+/* STEP INDICATOR */
+.steps{display:flex;align-items:center;margin-bottom:28px;}
+.step{display:flex;flex-direction:column;align-items:center;gap:4px;}
+.step-circle{width:28px;height:28px;border-radius:50%;background:#e8e6f8;color:var(--muted);font-size:11px;font-weight:500;display:flex;align-items:center;justify-content:center;transition:all 0.3s;}
+.step-circle.active{background:var(--primary);color:#fff;}
+.step-circle.done{background:#1D9E75;color:#fff;}
+.step-label{font-size:10px;color:var(--muted);white-space:nowrap;}
+.step-label.active{color:var(--primary);font-weight:500;}
+.step-line{flex:1;height:1px;background:#e8e6f8;margin:0 6px 14px;transition:background 0.3s;}
+.step-line.done{background:#1D9E75;}
 
-/* form */
-.bk-form-title{font-size:13px;font-weight:600;margin-bottom:14px;}
-.bk-field{margin-bottom:12px;}
-.bk-label{font-size:11px;font-weight:500;color:var(--muted);margin-bottom:5px;display:block;text-transform:uppercase;letter-spacing:0.04em;}
-.bk-label .req{color:#D85A30;margin-left:2px;}
-.bk-input,.bk-select{width:100%;border:1.5px solid var(--border);border-radius:10px;padding:10px 12px;font-size:13px;font-family:'DM Sans',sans-serif;color:var(--text);background:#fff;outline:none;transition:border-color 0.15s,box-shadow 0.15s;}
-.bk-input:focus,.bk-select:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(83,74,183,0.08);}
-.bk-input::placeholder{color:#b0b0c0;}
-.bk-select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M6 8L1 3h10z' fill='%236b7280'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px;cursor:pointer;}
-.bk-submit{width:100%;padding:12px;background:var(--primary);color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;margin-top:4px;transition:opacity 0.15s,transform 0.1s;}
-.bk-submit:hover{opacity:0.9;transform:translateY(-1px);}
-.bk-submit:active{transform:translateY(0);}
-.bk-submit:disabled{opacity:0.6;cursor:not-allowed;transform:none;}
+/* ROOM LIST */
+.room-list{display:flex;flex-direction:column;gap:10px;}
+.room-card{border:1.5px solid var(--border);border-radius:14px;padding:16px 18px;cursor:pointer;position:relative;transition:all 0.18s;background:#fff;display:flex;align-items:center;gap:16px;}
+.room-card:hover{border-color:var(--primary-mid);transform:translateY(-1px);box-shadow:0 4px 16px rgba(83,74,183,0.08);}
+.room-icon{width:42px;height:42px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+.ri-p{background:#EEEDFE;} .ri-t{background:#E1F5EE;} .ri-c{background:#FAECE7;}
+.ri-k{background:#FBEAF0;} .ri-b{background:#E6F1FB;} .ri-a{background:#FAEEDA;} .ri-g{background:#EAF3DE;}
+.room-name{font-size:14px;font-weight:500;color:var(--text);margin-bottom:2px;}
+.room-cap{font-size:12px;color:var(--muted);}
+.room-arrow{margin-left:auto;color:var(--muted);font-size:18px;flex-shrink:0;}
 
-/* toast */
+/* FORM */
+.form-section{background:#fff;border-radius:16px;border:1.5px solid var(--border);padding:24px;}
+.form-title{font-size:14px;font-weight:600;margin-bottom:20px;color:var(--text);}
+.summary-box{background:var(--primary-light);border-radius:12px;padding:14px 16px;margin-bottom:20px;display:flex;align-items:center;gap:14px;}
+.sum-icon{width:44px;height:44px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;}
+.sum-info{flex:1;}
+.sum-room{font-size:14px;font-weight:500;color:var(--primary);}
+.sum-meta{font-size:12px;color:var(--primary-mid);margin-top:2px;}
+.fg{margin-bottom:14px;}
+.fl{font-size:11px;font-weight:500;color:var(--muted);margin-bottom:5px;display:block;text-transform:uppercase;letter-spacing:0.04em;}
+.fl .req{color:#D85A30;margin-left:2px;}
+.fi{width:100%;border:1.5px solid var(--border);border-radius:10px;padding:10px 12px;font-size:14px;font-family:'DM Sans',sans-serif;color:var(--text);background:#fff;outline:none;transition:border-color 0.15s,box-shadow 0.15s;}
+.fi:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(83,74,183,0.08);}
+.fi::placeholder{color:#b0b0c0;}
+.fta{resize:none;height:80px;}
+.btn-confirm{width:100%;padding:13px;background:var(--primary);color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;transition:opacity 0.15s,transform 0.1s;margin-top:4px;}
+.btn-confirm:hover{opacity:0.9;transform:translateY(-1px);}
+.btn-confirm:active{transform:translateY(0);}
+.btn-confirm:disabled{opacity:0.6;cursor:not-allowed;transform:none;}
+
+/* EXISTING BOOKINGS ON DAY */
+.existing-wrap{margin-bottom:20px;}
+.existing-title{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px;}
+.existing-item{display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:10px;background:var(--bg);margin-bottom:6px;}
+.existing-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.existing-info{flex:1;}
+.existing-room{font-size:12px;font-weight:500;}
+.existing-meta{font-size:11px;color:var(--muted);margin-top:1px;}
+.existing-cancel{background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;padding:2px 6px;border-radius:4px;transition:all 0.15s;}
+.existing-cancel:hover{color:#993C1D;background:#FAECE7;}
+
+/* TOAST */
 .toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:#1a1a2e;color:#fff;padding:9px 22px;border-radius:30px;font-size:13px;opacity:0;transition:opacity 0.3s;pointer-events:none;z-index:9999;white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,0.18);}
 .toast.show{opacity:1;}
 </style>
 </head>
 <body>
 
-<!-- Session guard -->
 <script>
 (async function(){
   var _sb=window.supabase.createClient(
@@ -117,81 +138,110 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 </script>
 
 <!-- TOP BAR -->
-<div class="ov-topbar">
+<div class="topbar">
   <button class="back-btn" onclick="window.history.back()">← Back</button>
-  <div class="ov-title">Room Booking</div>
+  <div class="topbar-title">Room Booking</div>
   <div style="width:80px"></div>
 </div>
 
-<div class="ov-page">
-  <div class="ov-month-nav">
-    <button class="ov-nav-btn" onclick="ovChMonth(-1)">‹</button>
-    <div class="ov-month-lbl" id="ov-month-lbl"></div>
-    <button class="ov-nav-btn" onclick="ovChMonth(1)">›</button>
+<!-- PAGE 0: CALENDAR OVERVIEW -->
+<div class="page active" id="pg-overview">
+  <div class="month-nav">
+    <button class="nav-btn" onclick="ovChMonth(-1)">‹</button>
+    <div class="month-lbl" id="ov-month-lbl"></div>
+    <button class="nav-btn" onclick="ovChMonth(1)">›</button>
     <button class="today-btn" onclick="goToday()">Today</button>
   </div>
-
-  <div class="ov-legend" id="ov-legend"></div>
-
-  <div class="ov-cal">
-    <div class="ov-cal-dh">
-      <div class="ov-cal-dl">Sun</div><div class="ov-cal-dl">Mon</div>
-      <div class="ov-cal-dl">Tue</div><div class="ov-cal-dl">Wed</div>
-      <div class="ov-cal-dl">Thu</div><div class="ov-cal-dl">Fri</div>
-      <div class="ov-cal-dl">Sat</div>
+  <div class="legend" id="ov-legend"></div>
+  <div class="cal">
+    <div class="cal-dh">
+      <div class="cal-dl">Sun</div><div class="cal-dl">Mon</div>
+      <div class="cal-dl">Tue</div><div class="cal-dl">Wed</div>
+      <div class="cal-dl">Thu</div><div class="cal-dl">Fri</div>
+      <div class="cal-dl">Sat</div>
     </div>
-    <div class="ov-cal-grid" id="ov-cal-grid"></div>
+    <div class="cal-grid" id="ov-cal-grid"></div>
   </div>
 </div>
 
-<!-- POPUP -->
-<div class="bk-overlay" id="bk-overlay" onclick="handleOverlayClick(event)">
-  <div class="bk-popup">
-    <div class="bk-popup-header">
-      <div class="bk-popup-date" id="bk-popup-date"></div>
-      <button class="bk-popup-close" onclick="closePopup()">✕</button>
+<!-- PAGE 1: SELECT ROOM -->
+<div class="page" id="pg-room">
+  <div class="flow-header">
+    <button class="back-btn" onclick="showPage('overview')">← Back</button>
+    <div class="flow-date-badge" id="room-date-label"></div>
+  </div>
+  <div class="steps">
+    <div class="step"><div class="step-circle active">1</div><div class="step-label active">Room</div></div>
+    <div class="step-line"></div>
+    <div class="step"><div class="step-circle">2</div><div class="step-label">Time</div></div>
+    <div class="step-line"></div>
+    <div class="step"><div class="step-circle">3</div><div class="step-label">Details</div></div>
+  </div>
+  <div id="existing-on-day" style="display:none"></div>
+  <p style="font-size:13px;color:var(--muted);margin-bottom:14px;">Choose the studio you'd like to book</p>
+  <div class="room-list" id="room-list"></div>
+</div>
+
+<!-- PAGE 2: TIME INPUT -->
+<div class="page" id="pg-time">
+  <div class="flow-header">
+    <button class="back-btn" onclick="showPage('room')">← Back</button>
+    <div class="flow-date-badge" id="time-date-label"></div>
+  </div>
+  <div class="steps">
+    <div class="step"><div class="step-circle done">✓</div><div class="step-label">Room</div></div>
+    <div class="step-line done"></div>
+    <div class="step"><div class="step-circle active">2</div><div class="step-label active">Time</div></div>
+    <div class="step-line"></div>
+    <div class="step"><div class="step-circle">3</div><div class="step-label">Details</div></div>
+  </div>
+  <div class="form-section">
+    <div class="summary-box" id="time-summary-box">
+      <div class="sum-icon" id="time-sum-icon"></div>
+      <div class="sum-info">
+        <div class="sum-room" id="time-sum-room"></div>
+        <div class="sum-meta" id="time-sum-meta"></div>
+      </div>
     </div>
-    <div class="bk-popup-body">
-
-      <div id="bk-existing-wrap" style="display:none">
-        <div class="bk-existing-title">Existing Bookings</div>
-        <div id="bk-existing-list"></div>
-        <div class="bk-divider"></div>
-      </div>
-
-      <div class="bk-form-title">+ New Booking</div>
-
-      <div class="bk-field">
-        <label class="bk-label">Room <span class="req">*</span></label>
-        <select class="bk-select" id="bk-room">
-          <option value="">Select a room…</option>
-          <option value="1">🎬 Live Studio Hall</option>
-          <option value="2">🎭 Studio 2</option>
-          <option value="3">🍳 Studio 3</option>
-          <option value="4">🎤 Studio 4</option>
-          <option value="5">🎤 Studio 5</option>
-          <option value="6">🏛️ Function Room</option>
-          <option value="7">🎧 The Pods</option>
-        </select>
-      </div>
-
-      <div class="bk-field">
-        <label class="bk-label">Time <span class="req">*</span></label>
-        <input class="bk-input" id="bk-time" type="text" placeholder="e.g. 10:00 - 12:00 or 2pm - 4pm">
-      </div>
-
-      <div class="bk-field">
-        <label class="bk-label">Person in Charge <span class="req">*</span></label>
-        <input class="bk-input" id="bk-name" type="text" placeholder="e.g. John Smith">
-      </div>
-
-      <div class="bk-field">
-        <label class="bk-label">Notes (optional)</label>
-        <input class="bk-input" id="bk-note" type="text" placeholder="Any special requests…">
-      </div>
-
-      <button class="bk-submit" id="bk-submit-btn" onclick="submitBooking()">Confirm Booking →</button>
+    <div class="fg">
+      <label class="fl">Time <span class="req">*</span></label>
+      <input class="fi" id="inp-time" type="text" placeholder="e.g. 10:00 – 14:00 or 8pm – 12am">
+      <div style="font-size:11px;color:var(--muted);margin-top:6px;">Enter start and end time freely — your livestream may run longer than 2 hours.</div>
     </div>
+    <button class="btn-confirm" onclick="confirmTime()">Next → Fill Details</button>
+  </div>
+</div>
+
+<!-- PAGE 3: PIC & NOTES -->
+<div class="page" id="pg-details">
+  <div class="flow-header">
+    <button class="back-btn" onclick="showPage('time')">← Back</button>
+    <div class="flow-date-badge" id="details-date-label"></div>
+  </div>
+  <div class="steps">
+    <div class="step"><div class="step-circle done">✓</div><div class="step-label">Room</div></div>
+    <div class="step-line done"></div>
+    <div class="step"><div class="step-circle done">✓</div><div class="step-label">Time</div></div>
+    <div class="step-line done"></div>
+    <div class="step"><div class="step-circle active">3</div><div class="step-label active">Details</div></div>
+  </div>
+  <div class="form-section">
+    <div class="summary-box" id="details-summary-box">
+      <div class="sum-icon" id="det-sum-icon"></div>
+      <div class="sum-info">
+        <div class="sum-room" id="det-sum-room"></div>
+        <div class="sum-meta" id="det-sum-meta"></div>
+      </div>
+    </div>
+    <div class="fg">
+      <label class="fl">Person in Charge <span class="req">*</span></label>
+      <input class="fi" id="inp-name" type="text" placeholder="e.g. John Smith">
+    </div>
+    <div class="fg">
+      <label class="fl">Notes (optional)</label>
+      <textarea class="fi fta" id="inp-note" placeholder="Any special requests or notes…"></textarea>
+    </div>
+    <button class="btn-confirm" id="btn-confirm" onclick="submitBooking()">Confirm Booking →</button>
   </div>
 </div>
 
@@ -205,21 +255,33 @@ var SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsI
 var sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,storage:window.sessionStorage}});
 
 var rooms={
-  1:{name:'Live Studio Hall',icon:'🎬',ev:'ov-ev-p',dot:'#534AB7'},
-  2:{name:'Studio 2',        icon:'🎭',ev:'ov-ev-t',dot:'#0F6E56'},
-  3:{name:'Studio 3',        icon:'🍳',ev:'ov-ev-c',dot:'#993C1D'},
-  4:{name:'Studio 4',        icon:'🎤',ev:'ov-ev-k',dot:'#993556'},
-  5:{name:'Studio 5',        icon:'🎤',ev:'ov-ev-b',dot:'#185FA5'},
-  6:{name:'Function Room',   icon:'🏛️',ev:'ov-ev-a',dot:'#854F0B'},
-  7:{name:'The Pods',        icon:'🎧',ev:'ov-ev-g',dot:'#0F6E56'},
+  1:{name:'Live Studio Hall',icon:'🎬',ri:'ri-p',ev:'ev-p',dot:'#534AB7'},
+  2:{name:'Studio 2',        icon:'🎭',ri:'ri-t',ev:'ev-t',dot:'#0F6E56'},
+  3:{name:'Studio 3',        icon:'🍳',ri:'ri-c',ev:'ev-c',dot:'#993C1D'},
+  4:{name:'Studio 4',        icon:'🎤',ri:'ri-k',ev:'ev-k',dot:'#993556'},
+  5:{name:'Studio 5',        icon:'🎤',ri:'ri-b',ev:'ev-b',dot:'#185FA5'},
+  6:{name:'Function Room',   icon:'🏛️',ri:'ri-a',ev:'ev-a',dot:'#854F0B'},
+  7:{name:'The Pods',        icon:'🎧',ri:'ri-g',ev:'ev-g',dot:'#0F6E56'},
 };
 
-var MONTHS_OV=['January','February','March','April','May','June','July','August','September','October','November','December'];
+var MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
 var ovMonth=new Date();
 var allBookings=[];
-var currentDateStr=null;
-var currentIso=null;
 
+// booking flow state
+var selDateStr='';
+var selDateLabel='';
+var selRoom=null;
+var selTime='';
+
+/* ── PAGES ── */
+function showPage(id){
+  document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
+  document.getElementById('pg-'+id).classList.add('active');
+  window.scrollTo(0,0);
+}
+
+/* ── LOAD BOOKINGS ── */
 async function loadBookings(){
   try{
     var r=await sb.from('bookings').select('*').order('created_at',{ascending:false});
@@ -233,126 +295,162 @@ async function loadBookings(){
   }catch(e){
     allBookings=JSON.parse(localStorage.getItem('liveBookings')||'[]');
   }
-  ovRenderCalendar();
+  renderCalendar();
 }
 
 function saveLocal(){try{localStorage.setItem('liveBookings',JSON.stringify(allBookings));}catch(e){}}
 
-function ovChMonth(d){ovMonth=new Date(ovMonth.getFullYear(),ovMonth.getMonth()+d,1);ovRenderCalendar();}
-function goToday(){ovMonth=new Date();ovRenderCalendar();}
-
 function getBookingsForDate(ds){return allBookings.filter(function(b){return b.date===ds;});}
 
-function ovRenderLegend(){
+/* ── CALENDAR ── */
+function ovChMonth(d){ovMonth=new Date(ovMonth.getFullYear(),ovMonth.getMonth()+d,1);renderCalendar();}
+function goToday(){ovMonth=new Date();renderCalendar();}
+
+function renderLegend(){
   document.getElementById('ov-legend').innerHTML=Object.keys(rooms).map(function(id){
-    return '<div class="ov-legend-item"><div class="ov-legend-dot" style="background:'+rooms[id].dot+'"></div>'+esc(rooms[id].name)+'</div>';
+    return '<div class="legend-item"><div class="legend-dot" style="background:'+rooms[id].dot+'"></div>'+esc(rooms[id].name)+'</div>';
   }).join('');
 }
 
-function ovRenderCalendar(){
+function renderCalendar(){
   var m=ovMonth;
-  document.getElementById('ov-month-lbl').textContent=MONTHS_OV[m.getMonth()]+' '+m.getFullYear();
+  document.getElementById('ov-month-lbl').textContent=MONTHS[m.getMonth()]+' '+m.getFullYear();
   var first=new Date(m.getFullYear(),m.getMonth(),1).getDay();
   var days=new Date(m.getFullYear(),m.getMonth()+1,0).getDate();
   var today=new Date();today.setHours(0,0,0,0);
   var html='';
 
-  for(var i=0;i<first;i++) html+='<div class="ov-day ov-empty"></div>';
+  for(var i=0;i<first;i++) html+='<div class="day empty"></div>';
 
   for(var d=1;d<=days;d++){
     var dt=new Date(m.getFullYear(),m.getMonth(),d);
     var isPast=dt<today;
     var isToday=dt.getTime()===today.getTime();
     var dateStr=dt.toLocaleDateString('en-GB',{month:'long',day:'numeric'});
-    var iso=dt.toISOString();
     var bks=getBookingsForDate(dateStr);
-    var cls='ov-day'+(isPast?' ov-past':'')+(isToday?' ov-today':'');
+    var cls='day'+(isPast?' past':'')+(isToday?' today':'');
+    var iso=dt.toISOString();
 
     var evHtml=bks.slice(0,3).map(function(b){
-      var rm=rooms[b.room&&b.room.id]||{ev:'ov-ev-p'};
-      return '<div class="ov-ev '+rm.ev+'">'+esc(b.time)+' · '+esc((b.room&&b.room.name)||'')+'</div>';
+      var rm=rooms[b.room&&b.room.id]||{ev:'ev-p'};
+      return '<div class="ev '+rm.ev+'">'+esc(b.time)+' · '+esc((b.room&&b.room.name)||'')+'</div>';
     }).join('');
-    if(bks.length>3) evHtml+='<div class="ov-more">+'+(bks.length-3)+' more</div>';
+    if(bks.length>3) evHtml+='<div class="ev-more">+'+(bks.length-3)+' more</div>';
 
-    html+='<div class="'+cls+'" onclick="openPopup(\''+iso+'\',\''+dateStr+'\')">'
-      +'<div class="ov-day-num">'+d+'</div>'
-      +'<div class="ov-day-events">'+evHtml+'</div>'
-      +'</div>';
+    var onclick=isPast?'':'onclick="openDateFlow(\''+iso+'\',\''+dateStr+'\')"';
+    html+='<div class="'+cls+'" '+onclick+'><div class="day-num">'+d+'</div><div class="day-events">'+evHtml+'</div></div>';
   }
 
   document.getElementById('ov-cal-grid').innerHTML=html;
 }
 
-function openPopup(iso,dateStr){
-  currentDateStr=dateStr;
-  currentIso=iso;
-  document.getElementById('bk-popup-date').textContent=dateStr;
+/* ── FLOW: open date → select room ── */
+function openDateFlow(iso,dateStr){
+  selDateStr=dateStr;
+  selDateLabel=dateStr;
+  selRoom=null;
+  selTime='';
 
-  // reset form
-  document.getElementById('bk-room').value='';
-  document.getElementById('bk-time').value='';
-  document.getElementById('bk-name').value='';
-  document.getElementById('bk-note').value='';
+  document.getElementById('room-date-label').textContent=dateStr;
 
-  // existing bookings
+  // show existing bookings for that day
   var bks=getBookingsForDate(dateStr);
-  var wrap=document.getElementById('bk-existing-wrap');
-  var list=document.getElementById('bk-existing-list');
+  var wrap=document.getElementById('existing-on-day');
   if(bks.length){
     wrap.style.display='block';
-    list.innerHTML=bks.map(function(b){
-      var rm=rooms[b.room&&b.room.id]||{dot:'#534AB7'};
-      return '<div class="bk-existing-item">'
-        +'<div class="bk-existing-dot" style="background:'+rm.dot+'"></div>'
-        +'<div class="bk-existing-info">'
-        +'<div class="bk-existing-room">'+esc((b.room&&b.room.name)||'')+'</div>'
-        +'<div class="bk-existing-meta">'+esc(b.time)+' · '+esc(b.name)+(b.note?' · '+esc(b.note):'')+'</div>'
-        +'</div>'
-        +'<button class="bk-existing-cancel" onclick="cancelBooking(\''+b.id+'\')" title="Cancel">✕</button>'
-        +'</div>';
-    }).join('');
+    var html='<div class="existing-wrap"><div class="existing-title">Existing bookings this day</div>'
+      +bks.map(function(b){
+        var rm=rooms[b.room&&b.room.id]||{dot:'#534AB7'};
+        return '<div class="existing-item">'
+          +'<div class="existing-dot" style="background:'+rm.dot+'"></div>'
+          +'<div class="existing-info">'
+          +'<div class="existing-room">'+esc((b.room&&b.room.name)||'')+'</div>'
+          +'<div class="existing-meta">'+esc(b.time)+' · '+esc(b.name)+(b.note?' · '+esc(b.note):'')+'</div>'
+          +'</div>'
+          +'<button class="existing-cancel" onclick="cancelBooking(\''+b.id+'\',\''+iso+'\',\''+dateStr+'\')" title="Cancel">✕</button>'
+          +'</div>';
+      }).join('')+'</div>';
+    wrap.innerHTML=html;
   } else {
     wrap.style.display='none';
+    wrap.innerHTML='';
   }
 
-  document.getElementById('bk-overlay').classList.add('show');
-  setTimeout(function(){document.getElementById('bk-time').focus();},200);
+  renderRoomList();
+  showPage('room');
 }
 
-function closePopup(){
-  document.getElementById('bk-overlay').classList.remove('show');
-  currentDateStr=null; currentIso=null;
+function renderRoomList(){
+  var roomArr=[
+    {id:1,cap:'Large capacity hall'},
+    {id:2,cap:'Dual-scene live studio'},
+    {id:3,cap:'Kitchen-scene studio'},
+    {id:4,cap:'Solo live studio'},
+    {id:5,cap:'Solo live studio'},
+    {id:6,cap:'Events & meetings'},
+    {id:7,cap:'Private pod space'},
+  ];
+  document.getElementById('room-list').innerHTML=roomArr.map(function(r){
+    var rm=rooms[r.id];
+    return '<div class="room-card" onclick="selectRoom('+r.id+')">'
+      +'<div class="room-icon '+rm.ri+'">'+rm.icon+'</div>'
+      +'<div style="flex:1;min-width:0"><div class="room-name">'+esc(rm.name)+'</div><div class="room-cap">'+esc(r.cap)+'</div></div>'
+      +'<div class="room-arrow">›</div>'
+      +'</div>';
+  }).join('');
 }
 
-function handleOverlayClick(e){if(e.target===document.getElementById('bk-overlay'))closePopup();}
-document.addEventListener('keydown',function(e){if(e.key==='Escape')closePopup();});
+/* ── SELECT ROOM → time page ── */
+function selectRoom(id){
+  selRoom=rooms[id];
+  document.getElementById('time-date-label').textContent=selDateLabel;
 
-// enter key submits form
-document.addEventListener('keydown',function(e){
-  if(e.key==='Enter'&&document.getElementById('bk-overlay').classList.contains('show')){
-    submitBooking();
-  }
-});
+  var icon=document.getElementById('time-sum-icon');
+  icon.textContent=selRoom.icon;
+  icon.className='sum-icon '+selRoom.ri;
+  document.getElementById('time-sum-room').textContent=selRoom.name;
+  document.getElementById('time-sum-meta').textContent=selDateLabel;
+  document.getElementById('inp-time').value='';
 
+  showPage('time');
+  setTimeout(function(){document.getElementById('inp-time').focus();},200);
+}
+
+/* ── CONFIRM TIME → details page ── */
+function confirmTime(){
+  var t=document.getElementById('inp-time').value.trim();
+  if(!t){showToast('Please enter a time');return;}
+  selTime=t;
+
+  document.getElementById('details-date-label').textContent=selDateLabel;
+
+  var icon=document.getElementById('det-sum-icon');
+  icon.textContent=selRoom.icon;
+  icon.className='sum-icon '+selRoom.ri;
+  document.getElementById('det-sum-room').textContent=selRoom.name;
+  document.getElementById('det-sum-meta').textContent=selDateLabel+' · '+selTime;
+
+  document.getElementById('inp-name').value='';
+  document.getElementById('inp-note').value='';
+
+  showPage('details');
+  setTimeout(function(){document.getElementById('inp-name').focus();},200);
+}
+
+/* ── SUBMIT BOOKING ── */
 async function submitBooking(){
-  var roomId=parseInt(document.getElementById('bk-room').value);
-  var time=document.getElementById('bk-time').value.trim();
-  var name=document.getElementById('bk-name').value.trim();
-  var note=document.getElementById('bk-note').value.trim();
-
-  if(!roomId){showToast('Please select a room');return;}
-  if(!time){showToast('Please enter a time');return;}
+  var name=document.getElementById('inp-name').value.trim();
+  var note=document.getElementById('inp-note').value.trim();
   if(!name){showToast('Please enter person in charge');return;}
 
-  var btn=document.getElementById('bk-submit-btn');
+  var btn=document.getElementById('btn-confirm');
   btn.disabled=true;btn.textContent='Saving…';
 
-  var rm=rooms[roomId];
   var b={
     id:Date.now()+'_'+Math.random().toString(36).slice(2,6),
-    room:{id:roomId,name:rm.name,icon:rm.icon,ri:'ri-p'},
-    date:currentDateStr,
-    time:time,
+    room:{id:Object.keys(rooms).find(function(k){return rooms[k]===selRoom;}),name:selRoom.name,icon:selRoom.icon},
+    date:selDateStr,
+    time:selTime,
     name:name,
     note:note,
     status:'confirmed'
@@ -365,20 +463,33 @@ async function submitBooking(){
   allBookings.unshift(b);
   saveLocal();
 
-  btn.disabled=false;btn.innerHTML='Confirm Booking →';
+  btn.disabled=false;btn.textContent='Confirm Booking →';
   showToast('Booking confirmed! ✓');
-  closePopup();
-  ovRenderCalendar();
+  showPage('overview');
+  renderCalendar();
 }
 
-async function cancelBooking(id){
+/* ── CANCEL BOOKING ── */
+async function cancelBooking(id,iso,dateStr){
   allBookings=allBookings.filter(function(b){return String(b.id)!==String(id);});
   saveLocal();
   try{await sb.from('bookings').delete().eq('id',String(id));}catch(e){}
   showToast('Booking cancelled');
-  if(currentDateStr) openPopup(currentIso,currentDateStr);
-  ovRenderCalendar();
+  renderCalendar();
+  // refresh existing list on room page
+  if(document.getElementById('pg-room').classList.contains('active')){
+    openDateFlow(iso,dateStr);
+  }
 }
+
+/* ── ENTER KEY SUPPORT ── */
+document.addEventListener('keydown',function(e){
+  if(e.key!=='Enter')return;
+  var pg=document.querySelector('.page.active');
+  if(!pg)return;
+  if(pg.id==='pg-time') confirmTime();
+  else if(pg.id==='pg-details') submitBooking();
+});
 
 function showToast(msg){
   var t=document.getElementById('toast');
@@ -386,7 +497,7 @@ function showToast(msg){
   setTimeout(function(){t.classList.remove('show');},2800);
 }
 
-ovRenderLegend();
+renderLegend();
 loadBookings();
 </script>
 </body>
