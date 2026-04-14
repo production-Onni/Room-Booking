@@ -1218,7 +1218,9 @@ function togglePass(){ var input=document.getElementById('login-pass'); var icon
 var ovMonth=new Date();
 var MONTHS_OV=['January','February','March','April','May','June','July','August','September','October','November','December'];
 var roomColors={ 1:{ev:'ov-ev-p',dot:'#534AB7',name:'Live Studio Hall'}, 2:{ev:'ov-ev-t',dot:'#0F6E56',name:'Studio 2'}, 3:{ev:'ov-ev-c',dot:'#993C1D',name:'Studio 3'}, 4:{ev:'ov-ev-k',dot:'#993556',name:'Studio 4'}, 5:{ev:'ov-ev-b',dot:'#185FA5',name:'Studio 5'}, 6:{ev:'ov-ev-a',dot:'#854F0B',name:'Function Room'}, 7:{ev:'ov-ev-g',dot:'#0F6E56',name:'The Pods'} };
-function startOverview(){ ovMonth=new Date(); goTo(6); ovRenderCalendar(); ovRenderLegend(); ovCloseDetail(); }
+function startOverview(){
+  window.location.href = 'booking-overview.html';
+}
 function ovChMonth(d){ ovMonth=new Date(ovMonth.getFullYear(),ovMonth.getMonth()+d,1); ovRenderCalendar(); ovCloseDetail(); }
 function ovGetBookingsForDate(dateStr){ return st.bookings.filter(function(b){ return b.date===dateStr; }); }
 function ovRenderLegend(){
