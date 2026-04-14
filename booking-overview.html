@@ -146,15 +146,13 @@ body{
 
   <div class="back-btn" onclick="goHome()">← Back</div>
 
-  <div class="ov-header">
-    <div class="ov-title">Booking Overview</div>
+  <div class="ov-month-nav">
+    <button class="ov-nav-btn" onclick="ovChMonth(-1)">‹</button>
+    <div class="ov-month-lbl" id="ov-month-lbl"></div>
+    <button class="ov-nav-btn" onclick="ovChMonth(1)">›</button>
   </div>
 
-  <div class="ov-month-nav">
-    <button class="ov-nav-btn" onclick="changeMonth(-1)">‹</button>
-    <div class="ov-month-lbl" id="monthLabel"></div>
-    <button class="ov-nav-btn" onclick="changeMonth(1)">›</button>
-  </div>
+  <div class="ov-legend" id="ov-legend"></div>
 
   <div class="ov-cal">
     <div class="ov-cal-dh">
@@ -166,57 +164,159 @@ body{
       <div class="ov-cal-dl">Fri</div>
       <div class="ov-cal-dl">Sat</div>
     </div>
-
-```
-<div class="ov-cal-grid" id="calendarGrid"></div>
-```
-
+    <div class="ov-cal-grid" id="ov-cal-grid"></div>
   </div>
+
+  <div class="ov-detail" id="ov-detail"></div>
 
 </div>
 
 <script>
-let current = new Date();
+function esc(s){
+  return String(s || '')
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;');
+}
 
-function renderCalendar(){
-  const grid = document.getElementById('calendarGrid');
-  grid.innerHTML = '';
+var ovMonth = new Date();
+var MONTHS_OV = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 
-  const year = current.getFullYear();
-  const month = current.getMonth();
+var roomColors = {
+  1:{ev:'ov-ev-p',dot:'#534AB7',name:'Live Studio Hall'},
+  2:{ev:'ov-ev-t',dot:'#0F6E56',name:'Studio 2'},
+  3:{ev:'ov-ev-c',dot:'#993C1D',name:'Studio 3'},
+  4:{ev:'ov-ev-k',dot:'#993556',name:'Studio 4'},
+  5:{ev:'ov-ev-b',dot:'#185FA5',name:'Studio 5'},
+  6:{ev:'ov-ev-a',dot:'#854F0B',name:'Function Room'},
+  7:{ev:'ov-ev-g',dot:'#0F6E56',name:'The Pods'}
+};
 
-  document.getElementById('monthLabel').innerText =
-    current.toLocaleString('en-US', { month: 'long', year:'numeric' });
+// 先从 localStorage 读 booking
+var st = {
+  bookings: JSON.parse(localStorage.getItem('onnimart_bookings') || '[]')
+};
 
-  const firstDay = new Date(year, month, 1).getDay();
-  const days = new Date(year, month + 1, 0).getDate();
+function ovChMonth(d){
+  ovMonth = new Date(ovMonth.getFullYear(), ovMonth.getMonth() + d, 1);
+  ovRenderCalendar();
+  ovCloseDetail();
+}
 
-  for(let i=0;i<firstDay;i++){
-    grid.innerHTML += `<div class="ov-day"></div>`;
+function ovGetBookingsForDate(dateStr){
+  return st.bookings.filter(function(b){
+    return b.date === dateStr;
+  });
+}
+
+function ovRenderLegend(){
+  var lgHtml = Object.keys(roomColors).map(function(id){
+    return `
+      <div class="ov-legend-item">
+        <div class="ov-legend-dot" style="background:${roomColors[id].dot}"></div>
+        ${esc(roomColors[id].name)}
+      </div>
+    `;
+  }).join('');
+  document.getElementById('ov-legend').innerHTML = lgHtml;
+}
+
+function ovRenderCalendar(){
+  var m = ovMonth;
+  document.getElementById('ov-month-lbl').textContent = MONTHS_OV[m.getMonth()] + ' ' + m.getFullYear();
+
+  var first = new Date(m.getFullYear(), m.getMonth(), 1).getDay();
+  var days = new Date(m.getFullYear(), m.getMonth() + 1, 0).getDate();
+
+  var today = new Date();
+  today.setHours(0,0,0,0);
+
+  var calHtml = '';
+
+  for (var i = 0; i < first; i++) {
+    calHtml += '<div class="ov-day ov-empty"></div>';
   }
 
-  for(let d=1; d<=days; d++){
-    grid.innerHTML += `
-      <div class="ov-day">
+  for (var d = 1; d <= days; d++) {
+    var dt = new Date(m.getFullYear(), m.getMonth(), d);
+    var isPast = dt < today;
+    var isToday = dt.getTime() === today.getTime();
+    var dateStr = dt.toLocaleDateString('en-GB', { month:'long', day:'numeric' });
+    var bookings = ovGetBookingsForDate(dateStr);
+    var cls = 'ov-day' + (isPast ? ' ov-past' : '') + (isToday ? ' ov-today' : '');
+    var iso = dt.toISOString();
+
+    var evHtml = bookings.slice(0,2).map(function(b){
+      var rc = roomColors[b.room.id] || { ev:'ov-ev-p' };
+      return `<div class="ov-ev ${rc.ev}">${esc(b.time)} ${esc(b.room.name)} · ${esc(b.name)}</div>`;
+    }).join('');
+
+    if (bookings.length > 2) {
+      evHtml += `<div class="ov-more">+${bookings.length - 2} more</div>`;
+    }
+
+    calHtml += `
+      <div class="${cls}" onclick="ovShowDay('${iso}','${dateStr}')">
         <div class="ov-day-num">${d}</div>
-        <div class="ov-day-events">
-          <div class="ov-ev">10:00 Live Studio</div>
-        </div>
+        <div class="ov-day-events">${evHtml}</div>
       </div>
     `;
   }
+
+  document.getElementById('ov-cal-grid').innerHTML = calHtml;
 }
 
-function changeMonth(n){
-  current.setMonth(current.getMonth()+n);
-  renderCalendar();
+function ovShowDay(iso, dateStr){
+  var bookings = ovGetBookingsForDate(dateStr);
+  var box = document.getElementById('ov-detail');
+
+  if (!bookings.length) {
+    box.innerHTML = `
+      <div class="ov-detail-title">
+        ${esc(dateStr)}
+        <button class="ov-detail-close" onclick="ovCloseDetail()">×</button>
+      </div>
+      <div class="ov-detail-empty">No bookings for this day.</div>
+    `;
+    box.classList.add('show');
+    return;
+  }
+
+  var listHtml = bookings.map(function(b){
+    var rc = roomColors[b.room.id] || { dot:'#534AB7' };
+    return `
+      <div class="ov-detail-item">
+        <div class="ov-detail-dot" style="background:${rc.dot}"></div>
+        <div class="ov-detail-info">
+          <div class="ov-detail-room">${esc(b.room.name)}</div>
+          <div class="ov-detail-meta">${esc(b.time)} · ${esc(b.name)}${b.note ? ' · ' + esc(b.note) : ''}</div>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  box.innerHTML = `
+    <div class="ov-detail-title">
+      ${esc(dateStr)}
+      <button class="ov-detail-close" onclick="ovCloseDetail()">×</button>
+    </div>
+    <div class="ov-detail-list">${listHtml}</div>
+  `;
+  box.classList.add('show');
+}
+
+function ovCloseDetail(){
+  document.getElementById('ov-detail').classList.remove('show');
 }
 
 function goHome(){
-  window.location.href = "index.html";
+  window.location.href = 'index.html';
 }
 
-renderCalendar();
+ovRenderLegend();
+ovRenderCalendar();
+ovCloseDetail();
 </script>
 
 </body>
