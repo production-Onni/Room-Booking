@@ -9,6 +9,25 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet">
 
 <style>
+  .ov-topbar{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:20px;
+}
+
+.start-booking-btn{
+  border:1px solid var(--border);
+  background:#fff;
+  border-radius:12px;
+  padding:8px 14px;
+  font-size:13px;
+  cursor:pointer;
+}
+
+.start-booking-btn:hover{
+  border-color:var(--primary);
+}
 :root {
   --bg:#f6f6fb;
   --card:#ffffff;
@@ -144,9 +163,12 @@ body{
 
 <div class="ov-page">
 
+  <div class="ov-topbar">
   <div class="back-btn" onclick="goHome()">← Back</div>
+  <button class="start-booking-btn" onclick="goStartBooking()">+ Start Booking</button>
+</div>
 
-  <div class="ov-month-nav">
+<div class="ov-month-nav">
     <button class="ov-nav-btn" onclick="ovChMonth(-1)">‹</button>
     <div class="ov-month-lbl" id="ov-month-lbl"></div>
     <button class="ov-nav-btn" onclick="ovChMonth(1)">›</button>
@@ -308,6 +330,10 @@ function ovShowDay(iso, dateStr){
 
 function ovCloseDetail(){
   document.getElementById('ov-detail').classList.remove('show');
+}
+
+function goStartBooking(){
+  window.location.href = 'index.html';
 }
 
 function goHome(){
