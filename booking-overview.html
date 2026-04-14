@@ -163,6 +163,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
     <div class="cal-grid" id="ov-cal-grid"></div>
   </div>
 </div>
+  <div class="form-section" style="margin-top:18px;">
+  <div class="form-title">All Bookings</div>
+  <div id="all-bookings-list"></div>
+</div>
 
 <!-- PAGE 1: SELECT ROOM -->
 <div class="page" id="pg-room">
@@ -272,7 +276,13 @@ var allBookings=[];
 var selDateStr='';
 var selDateLabel='';
 var selRoom=null;
-var selTime='';
+var selTime='';var ADMIN_EMAILS = [
+  'kenji@onnimart.com',
+  'Jianee@onnimart.com'
+];
+
+var currentUserEmail = '';
+var currentUserId = '';
 function parseTimeRange(input){
   if(!input) return null;
 
@@ -349,6 +359,34 @@ function findRoomConflict(dateStr, roomId, timeInput){
     invalid: false,
     conflict: false
   };
+  async function loadCurrentUser(){
+  try{
+    var r = await sb.auth.getSession();
+    var user = r && r.data && r.data.session ? r.data.session.user : null;
+
+    currentUserEmail = user && user.email ? String(user.email).toLowerCase() : '';
+    currentUserId = user && user.id ? String(user.id) : '';
+  }catch(e){
+    currentUserEmail = '';
+    currentUserId = '';
+  }
+}
+
+function isAdminUser(){
+  return ADMIN_EMAILS.indexOf(String(currentUserEmail || '').toLowerCase()) !== -1;
+}
+
+function canCancelBooking(b){
+  if(isAdminUser()) return true;
+
+  var ownerEmail = String(b.owner_email || '').toLowerCase();
+  var ownerId = String(b.owner_id || '');
+
+  if(ownerEmail && currentUserEmail && ownerEmail === currentUserEmail) return true;
+  if(ownerId && currentUserId && ownerId === currentUserId) return true;
+
+  return false;
+}
 }
 /* ── PAGES ── */
 function showPage(id){
@@ -443,7 +481,9 @@ function openDateFlow(iso,dateStr){
           +'<div class="existing-room">'+esc((b.room&&b.room.name)||'')+'</div>'
           +'<div class="existing-meta">'+esc(b.time)+' · '+esc(b.name)+(b.note?' · '+esc(b.note):'')+'</div>'
           +'</div>'
-          +'<button class="existing-cancel" onclick="cancelBooking(\''+b.id+'\',\''+iso+'\',\''+dateStr+'\')" title="Cancel">✕</button>'
+         +(canCancelBooking(b)
+  ? '<button class="existing-cancel" onclick="cancelBookingById(\''+b.id+'\')" title="Cancel">✕</button>'
+  : '')
           +'</div>';
       }).join('')+'</div>';
     wrap.innerHTML=html;
@@ -494,6 +534,37 @@ function selectRoom(id){
 
 /* ── CONFIRM TIME → details page ── */
 function confirmTime(){
+  function renderAllBookingsList(){
+  var wrap = document.getElementById('all-bookings-list');
+  if(!wrap) return;
+
+  if(!allBookings || !allBookings.length){
+    wrap.innerHTML = '<div style="font-size:13px;color:var(--muted);">No bookings yet.</div>';
+    return;
+  }
+
+  var sorted = allBookings.slice();
+
+  var html = sorted.map(function(b){
+    var rm = rooms[b.room && b.room.id] || { dot:'#534AB7', name:'Room' };
+    var canCancel = canCancelBooking(b);
+
+    return ''
+      + '<div class="existing-item" style="align-items:flex-start;padding:14px 16px;margin-bottom:10px;">'
+      +   '<div class="existing-dot" style="background:'+rm.dot+';margin-top:7px;"></div>'
+      +   '<div class="existing-info">'
+      +     '<div class="existing-room" style="font-size:13px;">'+esc((b.room && b.room.name) || '')+'</div>'
+      +     '<div class="existing-meta" style="margin-top:4px;">'+esc(b.date)+' · '+esc(b.time)+'</div>'
+      +     '<div class="existing-meta" style="margin-top:4px;">PIC: '+esc(b.name || '-')+'</div>'
+      +     (b.note ? '<div class="existing-meta" style="margin-top:4px;">Note: '+esc(b.note)+'</div>' : '')
+      +     (b.owner_email ? '<div class="existing-meta" style="margin-top:4px;">Booked by: '+esc(b.owner_email)+'</div>' : '')
+      +   '</div>'
+      +   (canCancel ? '<button class="existing-cancel" onclick="cancelBookingById(\''+String(b.id).replace(/'/g, "\\'")+'\')" title="Cancel">✕</button>' : '')
+      + '</div>';
+  }).join('');
+
+  wrap.innerHTML = html;
+}
   var t = document.getElementById('inp-time').value.trim();
   if(!t){
     showToast('Please enter a time');
@@ -568,26 +639,34 @@ async function submitBooking(){
   var btn = document.getElementById('btn-confirm');
   btn.disabled = true;
   btn.textContent = 'Saving…';
+  var sessionRes = await sb.auth.getSession();
+var user = sessionRes && sessionRes.data && sessionRes.data.session
+  ? sessionRes.data.session.user
+  : null;
+
+var ownerEmail = user && user.email ? user.email : '';
+var ownerId = user && user.id ? user.id : '';
 
   var b = {
-    id: Date.now() + '_' + Math.random().toString(36).slice(2,6),
-    room: {
-      id: roomId,
-      name: selRoom.name,
-      icon: selRoom.icon
-    },
-    date: selDateStr,
-    time: selTime,
-    name: name,
-    note: note,
-    status: 'confirmed'
-  };
-
+  id: Date.now() + '_' + Math.random().toString(36).slice(2,6),
+  room: {
+    id: roomId,
+    name: selRoom.name,
+    icon: selRoom.icon
+  },
+  date: selDateStr,
+  time: selTime,
+  name: name,
+  note: note,
+  status: 'confirmed',
+  owner_id: ownerId,
+  owner_email: ownerEmail
+};
   try{
     await sb.from('bookings').upsert(
-      {id:String(b.id), user_id:'local-user', payload:b},
-      {onConflict:'id'}
-    );
+  {id:String(b.id), user_id:(ownerId || 'local-user'), payload:b},
+  {onConflict:'id'}
+);
   }catch(e){
     console.warn('cloud save failed', e);
   }
@@ -598,8 +677,9 @@ async function submitBooking(){
   btn.disabled = false;
   btn.textContent = 'Confirm Booking →';
   showToast('Booking confirmed! ✓');
-  showPage('overview');
-  renderCalendar();
+showPage('overview');
+renderCalendar();
+renderAllBookingsList();
 }
 
 /* ── CANCEL BOOKING ── */
@@ -614,7 +694,44 @@ async function cancelBooking(id,iso,dateStr){
     openDateFlow(iso,dateStr);
   }
 }
+async function cancelBookingById(id){
+  var booking = allBookings.find(function(b){
+    return String(b.id) === String(id);
+  });
 
+  if(!booking){
+    showToast('Booking not found');
+    return;
+  }
+
+  if(!canCancelBooking(booking)){
+    showToast('Only admin or booking owner can cancel');
+    return;
+  }
+
+  var ok = window.confirm('Cancel this booking?');
+  if(!ok) return;
+
+  allBookings = allBookings.filter(function(b){
+    return String(b.id) !== String(id);
+  });
+
+  saveLocal();
+
+  try{
+    await sb.from('bookings').delete().eq('id', String(id));
+  }catch(e){
+    console.warn('delete failed', e);
+  }
+
+  showToast('Booking cancelled');
+  renderCalendar();
+  renderAllBookingsList();
+
+  if(document.getElementById('pg-room').classList.contains('active')){
+    openDateFlow(new Date().toISOString(), selDateStr);
+  }
+}
 /* ── ENTER KEY SUPPORT ── */
 document.addEventListener('keydown',function(e){
   if(e.key!=='Enter')return;
@@ -630,8 +747,12 @@ function showToast(msg){
   setTimeout(function(){t.classList.remove('show');},2800);
 }
 
-renderLegend();
-loadBookings();
+(async function initRoomBooking(){
+  renderLegend();
+  await loadCurrentUser();
+  await loadBookings();
+  renderAllBookingsList();
+})();
 </script>
 </body>
 </html>
