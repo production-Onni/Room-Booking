@@ -162,6 +162,67 @@ body{
   cursor:pointer;
   color:var(--muted);
 }
+
+/* Bug Fix 7: add missing legend styles */
+.ov-legend{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  margin-bottom:16px;
+}
+.ov-legend-item{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  font-size:11px;
+  color:var(--muted);
+}
+.ov-legend-dot{
+  width:9px;
+  height:9px;
+  border-radius:50%;
+  flex-shrink:0;
+}
+
+/* detail panel */
+.ov-detail{
+  background:#fff;
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:16px 18px;
+  margin-top:16px;
+  display:none;
+}
+.ov-detail.show{ display:block; }
+.ov-detail-title{
+  font-size:14px;
+  font-weight:600;
+  color:var(--text);
+  margin-bottom:12px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+.ov-detail-close{
+  background:none;
+  border:none;
+  font-size:18px;
+  color:var(--muted);
+  cursor:pointer;
+}
+.ov-detail-list{ display:flex; flex-direction:column; gap:8px; }
+.ov-detail-item{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:10px 12px;
+  border-radius:8px;
+  background:var(--bg);
+}
+.ov-detail-dot{ width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+.ov-detail-room{ font-size:13px; font-weight:600; color:var(--text); margin-bottom:2px; }
+.ov-detail-meta{ font-size:11px; color:var(--muted); }
+.ov-detail-empty{ font-size:13px; color:var(--muted); text-align:center; padding:14px; }
 </style>
 
 </head>
@@ -200,6 +261,7 @@ body{
 
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 function esc(s){
   return String(s || '')
@@ -222,10 +284,30 @@ var roomColors = {
   7:{ev:'ov-ev-g',dot:'#0F6E56',name:'The Pods'}
 };
 
-// 先从 localStorage 读 booking
-var st = {
- bookings: JSON.parse(localStorage.getItem('liveBookings') || '[]')
-};
+// Bug Fix 4: Load from Supabase first, fall back to localStorage
+var SUPABASE_URL = 'https://xuibibtaemaeeoodtxts.supabase.co';
+var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh1aWJpYnRhZW1hZWVvb2R0eHRzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUxOTc5NTksImV4cCI6MjA5MDc3Mzk1OX0.Oi5owJJG2uee63oROzU5Dd5dauR95Z_-gWiS0EfgPk';
+var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+var st = { bookings: JSON.parse(localStorage.getItem('liveBookings') || '[]') };
+
+async function loadBookingsFromCloud(){
+  try {
+    var result = await sb.from('bookings').select('*').order('created_at', { ascending: false });
+    if(result.data && result.data.length){
+      st.bookings = result.data.map(function(r){
+        return Object.assign({}, r.payload || {}, {
+          id: r.id || (r.payload && r.payload.id)
+        });
+      });
+    }
+  } catch(e){
+    console.warn('Cloud load failed, using localStorage:', e);
+  }
+  ovRenderLegend();
+  ovRenderCalendar();
+  ovCloseDetail();
+}
 
 function ovChMonth(d){
   ovMonth = new Date(ovMonth.getFullYear(), ovMonth.getMonth() + d, 1);
@@ -347,9 +429,8 @@ function goHome(){
   window.history.back();
 }
 
-ovRenderLegend();
-ovRenderCalendar();
-ovCloseDetail();
+// Bug Fix 4: start with cloud load (falls back to localStorage on failure)
+loadBookingsFromCloud();
 </script>
 
 </body>
