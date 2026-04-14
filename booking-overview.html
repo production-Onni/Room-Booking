@@ -147,6 +147,13 @@ body{
   overflow:hidden;
   text-overflow:ellipsis;
 }
+  .ov-ev-p { background:#EEEDFE; color:#534AB7; }
+.ov-ev-t { background:#E1F5EE; color:#0F6E56; }
+.ov-ev-c { background:#FAECE7; color:#993C1D; }
+.ov-ev-k { background:#FBEAF0; color:#993556; }
+.ov-ev-b { background:#E6F1FB; color:#185FA5; }
+.ov-ev-a { background:#FAEEDA; color:#854F0B; }
+.ov-ev-g { background:#EAF3DE; color:#0F6E56; }
 
 /* back */
 .back-btn{
@@ -337,7 +344,7 @@ function goStartBooking(){
 }
 
 function goHome(){
-  window.location.href = 'index.html';
+  window.history.back();
 }
 
 ovRenderLegend();
