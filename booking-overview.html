@@ -165,7 +165,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 </div>
   <div class="form-section" style="margin-top:18px;">
   <div class="form-title">All Bookings</div>
-  <div id="all-bookings-list"></div>
+  <div id="all-bookings-list" style="font-size:13px;color:var(--muted);">Loading bookings...</div>
 </div>
 
 <!-- PAGE 1: SELECT ROOM -->
@@ -749,6 +749,8 @@ function showToast(msg){
 
 (async function initRoomBooking(){
   renderLegend();
+  renderCalendar();
+
   await loadCurrentUser();
   await loadBookings();
   renderAllBookingsList();
