@@ -1,437 +1,393 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Booking Overview</title>
-
+<title>Room Booking</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet">
-
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-  .ov-topbar{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  margin-bottom:20px;
+:root{
+  --bg:#f6f6fb;--card:#fff;--border:#e5e7eb;
+  --text:#1f2937;--muted:#6b7280;
+  --primary:#534AB7;--primary-light:#EEEDFE;
 }
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
 
-.start-booking-btn{
-  border:1px solid var(--border);
-  background:#fff;
-  border-radius:12px;
-  padding:8px 14px;
-  font-size:13px;
-  cursor:pointer;
-}
+/* TOP BAR */
+.ov-topbar{display:flex;justify-content:space-between;align-items:center;padding:16px 28px;background:#fff;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;}
+.ov-title{font-family:'DM Serif Display',serif;font-size:22px;}
+.back-btn{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--muted);cursor:pointer;padding:6px 12px;border-radius:8px;border:none;background:none;font-family:'DM Sans',sans-serif;transition:background 0.15s;}
+.back-btn:hover{background:var(--bg);}
 
-.start-booking-btn:hover{
-  border-color:var(--primary);
-}
-:root {
-  --bg:#f6f6fb;
-  --card:#ffffff;
-  --border:#e5e7eb;
-  --text:#1f2937;
-  --muted:#6b7280;
-  --primary:#6c5ce7;
-}
+/* PAGE */
+.ov-page{max-width:1100px;margin:0 auto;padding:24px 20px 60px;}
 
-body{
-  margin:0;
-  font-family:'DM Sans', sans-serif;
-  background:var(--bg);
-  color:var(--text);
-}
+/* MONTH NAV */
+.ov-month-nav{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+.ov-month-lbl{font-size:20px;font-weight:600;min-width:180px;}
+.ov-nav-btn{width:34px;height:34px;border-radius:50%;border:1px solid var(--border);background:#fff;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;transition:background 0.15s;}
+.ov-nav-btn:hover{background:var(--bg);}
+.today-btn{padding:6px 14px;border:1px solid var(--border);background:#fff;border-radius:8px;font-size:13px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:background 0.15s;}
+.today-btn:hover{background:var(--bg);}
 
-/* layout */
-.ov-page{
-  max-width:1200px;
-  margin:40px auto;
-  padding:0 20px;
-}
+/* LEGEND */
+.ov-legend{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px;}
+.ov-legend-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted);}
+.ov-legend-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
 
-/* header */
-.ov-header{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  margin-bottom:20px;
-}
+/* CALENDAR */
+.ov-cal{background:#fff;border-radius:16px;border:1px solid var(--border);overflow:hidden;}
+.ov-cal-dh{display:grid;grid-template-columns:repeat(7,1fr);background:var(--primary);}
+.ov-cal-dl{text-align:center;padding:12px 0;font-size:12px;font-weight:500;color:rgba(255,255,255,0.85);}
+.ov-cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:var(--border);}
+.ov-day{background:#fff;padding:6px 8px;min-height:110px;position:relative;cursor:pointer;transition:background 0.12s;overflow:hidden;}
+.ov-day:hover{background:#f8f7ff;}
+.ov-day.ov-empty{background:var(--bg);cursor:default;}
+.ov-day.ov-today .ov-day-num{background:var(--primary);color:#fff;border-radius:50%;}
+.ov-day.ov-past{opacity:0.55;}
+.ov-day-num{font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px;width:26px;height:26px;display:flex;align-items:center;justify-content:center;}
+.ov-day-events{display:flex;flex-direction:column;gap:2px;}
+.ov-ev{font-size:10px;padding:2px 6px;border-radius:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:500;}
+.ov-ev-p{background:#EEEDFE;color:#534AB7;}
+.ov-ev-t{background:#E1F5EE;color:#0F6E56;}
+.ov-ev-c{background:#FAECE7;color:#993C1D;}
+.ov-ev-k{background:#FBEAF0;color:#993556;}
+.ov-ev-b{background:#E6F1FB;color:#185FA5;}
+.ov-ev-a{background:#FAEEDA;color:#854F0B;}
+.ov-ev-g{background:#EAF3DE;color:#0F6E56;}
+.ov-more{font-size:10px;color:var(--muted);padding:1px 4px;}
+.ov-day:not(.ov-empty):hover::after{content:'+ Add';position:absolute;top:5px;right:7px;font-size:10px;color:var(--primary);font-weight:600;}
 
-.ov-title{
-  font-family:'DM Serif Display', serif;
-  font-size:28px;
-}
+/* POPUP */
+.bk-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.32);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity 0.2s;}
+.bk-overlay.show{opacity:1;pointer-events:all;}
+.bk-popup{background:#fff;border-radius:20px;width:100%;max-width:430px;box-shadow:0 20px 60px rgba(0,0,0,0.18);overflow:hidden;transform:translateY(10px) scale(0.97);transition:transform 0.2s;}
+.bk-overlay.show .bk-popup{transform:translateY(0) scale(1);}
+.bk-popup-header{background:var(--primary);padding:16px 20px;display:flex;align-items:center;justify-content:space-between;}
+.bk-popup-date{font-family:'DM Serif Display',serif;font-size:18px;color:#fff;}
+.bk-popup-close{background:rgba(255,255,255,0.15);border:none;color:#fff;width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:background 0.15s;}
+.bk-popup-close:hover{background:rgba(255,255,255,0.3);}
+.bk-popup-body{padding:20px;}
 
-/* month nav */
-.ov-month-nav{
-  display:flex;
-  align-items:center;
-  gap:16px;
-  justify-content:center;
-  margin:20px 0;
-}
+/* existing */
+.bk-existing-title{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px;}
+.bk-existing-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;background:var(--bg);margin-bottom:6px;}
+.bk-existing-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.bk-existing-info{flex:1;}
+.bk-existing-room{font-size:12px;font-weight:500;}
+.bk-existing-meta{font-size:11px;color:var(--muted);margin-top:1px;}
+.bk-existing-cancel{background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;padding:2px 5px;border-radius:4px;transition:all 0.15s;}
+.bk-existing-cancel:hover{color:#993C1D;background:#FAECE7;}
+.bk-divider{height:1px;background:var(--border);margin:14px 0;}
 
-.ov-nav-btn{
-  width:40px;
-  height:40px;
-  border-radius:12px;
-  border:1px solid var(--border);
-  background:#fff;
-  cursor:pointer;
-}
+/* form */
+.bk-form-title{font-size:13px;font-weight:600;margin-bottom:14px;}
+.bk-field{margin-bottom:12px;}
+.bk-label{font-size:11px;font-weight:500;color:var(--muted);margin-bottom:5px;display:block;text-transform:uppercase;letter-spacing:0.04em;}
+.bk-label .req{color:#D85A30;margin-left:2px;}
+.bk-input,.bk-select{width:100%;border:1.5px solid var(--border);border-radius:10px;padding:10px 12px;font-size:13px;font-family:'DM Sans',sans-serif;color:var(--text);background:#fff;outline:none;transition:border-color 0.15s,box-shadow 0.15s;}
+.bk-input:focus,.bk-select:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(83,74,183,0.08);}
+.bk-input::placeholder{color:#b0b0c0;}
+.bk-select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M6 8L1 3h10z' fill='%236b7280'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px;cursor:pointer;}
+.bk-submit{width:100%;padding:12px;background:var(--primary);color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;margin-top:4px;transition:opacity 0.15s,transform 0.1s;}
+.bk-submit:hover{opacity:0.9;transform:translateY(-1px);}
+.bk-submit:active{transform:translateY(0);}
+.bk-submit:disabled{opacity:0.6;cursor:not-allowed;transform:none;}
 
-.ov-month-lbl{
-  font-size:22px;
-  font-weight:600;
-}
-
-/* calendar */
-.ov-cal{
-  background:var(--card);
-  border-radius:20px;
-  overflow:hidden;
-  border:1px solid var(--border);
-}
-
-.ov-cal-dh{
-  display:grid;
-  grid-template-columns:repeat(7,1fr);
-  background:var(--primary);
-  color:#fff;
-}
-
-.ov-cal-dl{
-  text-align:center;
-  padding:14px 0;
-  font-size:14px;
-}
-
-/* grid */
-.ov-cal-grid{
-  display:grid;
-  grid-template-columns:repeat(7,1fr);
-  gap:1px;
-  background:var(--border);
-}
-
-/* 🔥 关键：统一格子 */
-.ov-day{
-  background:#fff;
-  padding:8px;
-  height:120px;
-  position:relative;
-  overflow:hidden;
-}
-
-.ov-day-num{
-  font-size:14px;
-  font-weight:600;
-  margin-bottom:4px;
-}
-
-.ov-day-events{
-  display:flex;
-  flex-direction:column;
-  gap:4px;
-  overflow:hidden;
-}
-
-.ov-ev{
-  font-size:11px;
-  padding:3px 6px;
-  border-radius:6px;
-  background:#eef2ff;
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
-}
-  .ov-ev-p { background:#EEEDFE; color:#534AB7; }
-.ov-ev-t { background:#E1F5EE; color:#0F6E56; }
-.ov-ev-c { background:#FAECE7; color:#993C1D; }
-.ov-ev-k { background:#FBEAF0; color:#993556; }
-.ov-ev-b { background:#E6F1FB; color:#185FA5; }
-.ov-ev-a { background:#FAEEDA; color:#854F0B; }
-.ov-ev-g { background:#EAF3DE; color:#0F6E56; }
-
-/* back */
-.back-btn{
-  margin-bottom:20px;
-  display:inline-block;
-  cursor:pointer;
-  color:var(--muted);
-}
-
-/* Bug Fix 7: add missing legend styles */
-.ov-legend{
-  display:flex;
-  flex-wrap:wrap;
-  gap:10px;
-  margin-bottom:16px;
-}
-.ov-legend-item{
-  display:flex;
-  align-items:center;
-  gap:6px;
-  font-size:11px;
-  color:var(--muted);
-}
-.ov-legend-dot{
-  width:9px;
-  height:9px;
-  border-radius:50%;
-  flex-shrink:0;
-}
-
-/* detail panel */
-.ov-detail{
-  background:#fff;
-  border:1px solid var(--border);
-  border-radius:14px;
-  padding:16px 18px;
-  margin-top:16px;
-  display:none;
-}
-.ov-detail.show{ display:block; }
-.ov-detail-title{
-  font-size:14px;
-  font-weight:600;
-  color:var(--text);
-  margin-bottom:12px;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-}
-.ov-detail-close{
-  background:none;
-  border:none;
-  font-size:18px;
-  color:var(--muted);
-  cursor:pointer;
-}
-.ov-detail-list{ display:flex; flex-direction:column; gap:8px; }
-.ov-detail-item{
-  display:flex;
-  align-items:center;
-  gap:10px;
-  padding:10px 12px;
-  border-radius:8px;
-  background:var(--bg);
-}
-.ov-detail-dot{ width:10px; height:10px; border-radius:50%; flex-shrink:0; }
-.ov-detail-room{ font-size:13px; font-weight:600; color:var(--text); margin-bottom:2px; }
-.ov-detail-meta{ font-size:11px; color:var(--muted); }
-.ov-detail-empty{ font-size:13px; color:var(--muted); text-align:center; padding:14px; }
+/* toast */
+.toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:#1a1a2e;color:#fff;padding:9px 22px;border-radius:30px;font-size:13px;opacity:0;transition:opacity 0.3s;pointer-events:none;z-index:9999;white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,0.18);}
+.toast.show{opacity:1;}
 </style>
-
 </head>
-
 <body>
 
-<div class="ov-page">
+<!-- Session guard -->
+<script>
+(async function(){
+  var _sb=window.supabase.createClient(
+    "https://xuibibtaemaeeoodtxts.supabase.co",
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh1aWJpYnRhZW1hZWVvb2R0eHRzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUxOTc5NTksImV4cCI6MjA5MDc3Mzk1OX0.Oi5owJJG2uee63oROzU5Dd5daulR95Z_-gWiS0EfgPk",
+    {auth:{persistSession:true,storage:window.sessionStorage}}
+  );
+  var r=await _sb.auth.getSession();
+  if(!r.data||!r.data.session||!r.data.session.user) window.location.href='index.html';
+})();
+</script>
 
-  <div class="ov-topbar">
-  <div class="back-btn" onclick="goHome()">← Back</div>
-  <button class="start-booking-btn" onclick="goStartBooking()">+ Start Booking</button>
+<!-- TOP BAR -->
+<div class="ov-topbar">
+  <button class="back-btn" onclick="window.history.back()">← Back</button>
+  <div class="ov-title">Room Booking</div>
+  <div style="width:80px"></div>
 </div>
 
-<div class="ov-month-nav">
+<div class="ov-page">
+  <div class="ov-month-nav">
     <button class="ov-nav-btn" onclick="ovChMonth(-1)">‹</button>
     <div class="ov-month-lbl" id="ov-month-lbl"></div>
     <button class="ov-nav-btn" onclick="ovChMonth(1)">›</button>
+    <button class="today-btn" onclick="goToday()">Today</button>
   </div>
 
   <div class="ov-legend" id="ov-legend"></div>
 
   <div class="ov-cal">
     <div class="ov-cal-dh">
-      <div class="ov-cal-dl">Sun</div>
-      <div class="ov-cal-dl">Mon</div>
-      <div class="ov-cal-dl">Tue</div>
-      <div class="ov-cal-dl">Wed</div>
-      <div class="ov-cal-dl">Thu</div>
-      <div class="ov-cal-dl">Fri</div>
+      <div class="ov-cal-dl">Sun</div><div class="ov-cal-dl">Mon</div>
+      <div class="ov-cal-dl">Tue</div><div class="ov-cal-dl">Wed</div>
+      <div class="ov-cal-dl">Thu</div><div class="ov-cal-dl">Fri</div>
       <div class="ov-cal-dl">Sat</div>
     </div>
     <div class="ov-cal-grid" id="ov-cal-grid"></div>
   </div>
-
-  <div class="ov-detail" id="ov-detail"></div>
-
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- POPUP -->
+<div class="bk-overlay" id="bk-overlay" onclick="handleOverlayClick(event)">
+  <div class="bk-popup">
+    <div class="bk-popup-header">
+      <div class="bk-popup-date" id="bk-popup-date"></div>
+      <button class="bk-popup-close" onclick="closePopup()">✕</button>
+    </div>
+    <div class="bk-popup-body">
+
+      <div id="bk-existing-wrap" style="display:none">
+        <div class="bk-existing-title">Existing Bookings</div>
+        <div id="bk-existing-list"></div>
+        <div class="bk-divider"></div>
+      </div>
+
+      <div class="bk-form-title">+ New Booking</div>
+
+      <div class="bk-field">
+        <label class="bk-label">Room <span class="req">*</span></label>
+        <select class="bk-select" id="bk-room">
+          <option value="">Select a room…</option>
+          <option value="1">🎬 Live Studio Hall</option>
+          <option value="2">🎭 Studio 2</option>
+          <option value="3">🍳 Studio 3</option>
+          <option value="4">🎤 Studio 4</option>
+          <option value="5">🎤 Studio 5</option>
+          <option value="6">🏛️ Function Room</option>
+          <option value="7">🎧 The Pods</option>
+        </select>
+      </div>
+
+      <div class="bk-field">
+        <label class="bk-label">Time <span class="req">*</span></label>
+        <input class="bk-input" id="bk-time" type="text" placeholder="e.g. 10:00 - 12:00 or 2pm - 4pm">
+      </div>
+
+      <div class="bk-field">
+        <label class="bk-label">Person in Charge <span class="req">*</span></label>
+        <input class="bk-input" id="bk-name" type="text" placeholder="e.g. John Smith">
+      </div>
+
+      <div class="bk-field">
+        <label class="bk-label">Notes (optional)</label>
+        <input class="bk-input" id="bk-note" type="text" placeholder="Any special requests…">
+      </div>
+
+      <button class="bk-submit" id="bk-submit-btn" onclick="submitBooking()">Confirm Booking →</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
 <script>
-function esc(s){
-  return String(s || '')
-    .replace(/&/g,'&amp;')
-    .replace(/</g,'&lt;')
-    .replace(/>/g,'&gt;')
-    .replace(/"/g,'&quot;');
-}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 
-var ovMonth = new Date();
-var MONTHS_OV = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+var SUPABASE_URL='https://xuibibtaemaeeoodtxts.supabase.co';
+var SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh1aWJpYnRhZW1hZWVvb2R0eHRzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUxOTc5NTksImV4cCI6MjA5MDc3Mzk1OX0.Oi5owJJG2uee63oROzU5Dd5daulR95Z_-gWiS0EfgPk';
+var sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,storage:window.sessionStorage}});
 
-var roomColors = {
-  1:{ev:'ov-ev-p',dot:'#534AB7',name:'Live Studio Hall'},
-  2:{ev:'ov-ev-t',dot:'#0F6E56',name:'Studio 2'},
-  3:{ev:'ov-ev-c',dot:'#993C1D',name:'Studio 3'},
-  4:{ev:'ov-ev-k',dot:'#993556',name:'Studio 4'},
-  5:{ev:'ov-ev-b',dot:'#185FA5',name:'Studio 5'},
-  6:{ev:'ov-ev-a',dot:'#854F0B',name:'Function Room'},
-  7:{ev:'ov-ev-g',dot:'#0F6E56',name:'The Pods'}
+var rooms={
+  1:{name:'Live Studio Hall',icon:'🎬',ev:'ov-ev-p',dot:'#534AB7'},
+  2:{name:'Studio 2',        icon:'🎭',ev:'ov-ev-t',dot:'#0F6E56'},
+  3:{name:'Studio 3',        icon:'🍳',ev:'ov-ev-c',dot:'#993C1D'},
+  4:{name:'Studio 4',        icon:'🎤',ev:'ov-ev-k',dot:'#993556'},
+  5:{name:'Studio 5',        icon:'🎤',ev:'ov-ev-b',dot:'#185FA5'},
+  6:{name:'Function Room',   icon:'🏛️',ev:'ov-ev-a',dot:'#854F0B'},
+  7:{name:'The Pods',        icon:'🎧',ev:'ov-ev-g',dot:'#0F6E56'},
 };
 
-// Bug Fix 4: Load from Supabase first, fall back to localStorage
-var SUPABASE_URL = 'https://xuibibtaemaeeoodtxts.supabase.co';
-var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh1aWJpYnRhZW1hZWVvb2R0eHRzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUxOTc5NTksImV4cCI6MjA5MDc3Mzk1OX0.Oi5owJJG2uee63oROzU5Dd5dauR95Z_-gWiS0EfgPk';
-var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+var MONTHS_OV=['January','February','March','April','May','June','July','August','September','October','November','December'];
+var ovMonth=new Date();
+var allBookings=[];
+var currentDateStr=null;
+var currentIso=null;
 
-var st = { bookings: JSON.parse(localStorage.getItem('liveBookings') || '[]') };
-
-async function loadBookingsFromCloud(){
-  try {
-    var result = await sb.from('bookings').select('*').order('created_at', { ascending: false });
-    if(result.data && result.data.length){
-      st.bookings = result.data.map(function(r){
-        return Object.assign({}, r.payload || {}, {
-          id: r.id || (r.payload && r.payload.id)
-        });
+async function loadBookings(){
+  try{
+    var r=await sb.from('bookings').select('*').order('created_at',{ascending:false});
+    if(r.data&&r.data.length){
+      allBookings=r.data.map(function(row){
+        return Object.assign({},row.payload||{},{id:row.id||(row.payload&&row.payload.id)});
       });
+    } else {
+      allBookings=JSON.parse(localStorage.getItem('liveBookings')||'[]');
     }
-  } catch(e){
-    console.warn('Cloud load failed, using localStorage:', e);
+  }catch(e){
+    allBookings=JSON.parse(localStorage.getItem('liveBookings')||'[]');
   }
-  ovRenderLegend();
   ovRenderCalendar();
-  ovCloseDetail();
 }
 
-function ovChMonth(d){
-  ovMonth = new Date(ovMonth.getFullYear(), ovMonth.getMonth() + d, 1);
-  ovRenderCalendar();
-  ovCloseDetail();
-}
+function saveLocal(){try{localStorage.setItem('liveBookings',JSON.stringify(allBookings));}catch(e){}}
 
-function ovGetBookingsForDate(dateStr){
-  return st.bookings.filter(function(b){
-    return b.date === dateStr;
-  });
-}
+function ovChMonth(d){ovMonth=new Date(ovMonth.getFullYear(),ovMonth.getMonth()+d,1);ovRenderCalendar();}
+function goToday(){ovMonth=new Date();ovRenderCalendar();}
+
+function getBookingsForDate(ds){return allBookings.filter(function(b){return b.date===ds;});}
 
 function ovRenderLegend(){
-  var lgHtml = Object.keys(roomColors).map(function(id){
-    return `
-      <div class="ov-legend-item">
-        <div class="ov-legend-dot" style="background:${roomColors[id].dot}"></div>
-        ${esc(roomColors[id].name)}
-      </div>
-    `;
+  document.getElementById('ov-legend').innerHTML=Object.keys(rooms).map(function(id){
+    return '<div class="ov-legend-item"><div class="ov-legend-dot" style="background:'+rooms[id].dot+'"></div>'+esc(rooms[id].name)+'</div>';
   }).join('');
-  document.getElementById('ov-legend').innerHTML = lgHtml;
 }
 
 function ovRenderCalendar(){
-  var m = ovMonth;
-  document.getElementById('ov-month-lbl').textContent = MONTHS_OV[m.getMonth()] + ' ' + m.getFullYear();
+  var m=ovMonth;
+  document.getElementById('ov-month-lbl').textContent=MONTHS_OV[m.getMonth()]+' '+m.getFullYear();
+  var first=new Date(m.getFullYear(),m.getMonth(),1).getDay();
+  var days=new Date(m.getFullYear(),m.getMonth()+1,0).getDate();
+  var today=new Date();today.setHours(0,0,0,0);
+  var html='';
 
-  var first = new Date(m.getFullYear(), m.getMonth(), 1).getDay();
-  var days = new Date(m.getFullYear(), m.getMonth() + 1, 0).getDate();
+  for(var i=0;i<first;i++) html+='<div class="ov-day ov-empty"></div>';
 
-  var today = new Date();
-  today.setHours(0,0,0,0);
+  for(var d=1;d<=days;d++){
+    var dt=new Date(m.getFullYear(),m.getMonth(),d);
+    var isPast=dt<today;
+    var isToday=dt.getTime()===today.getTime();
+    var dateStr=dt.toLocaleDateString('en-GB',{month:'long',day:'numeric'});
+    var iso=dt.toISOString();
+    var bks=getBookingsForDate(dateStr);
+    var cls='ov-day'+(isPast?' ov-past':'')+(isToday?' ov-today':'');
 
-  var calHtml = '';
-
-  for (var i = 0; i < first; i++) {
-    calHtml += '<div class="ov-day ov-empty"></div>';
-  }
-
-  for (var d = 1; d <= days; d++) {
-    var dt = new Date(m.getFullYear(), m.getMonth(), d);
-    var isPast = dt < today;
-    var isToday = dt.getTime() === today.getTime();
-    var dateStr = dt.toLocaleDateString('en-GB', { month:'long', day:'numeric' });
-    var bookings = ovGetBookingsForDate(dateStr);
-    var cls = 'ov-day' + (isPast ? ' ov-past' : '') + (isToday ? ' ov-today' : '');
-    var iso = dt.toISOString();
-
-    var evHtml = bookings.slice(0,2).map(function(b){
-      var rc = roomColors[b.room.id] || { ev:'ov-ev-p' };
-      return `<div class="ov-ev ${rc.ev}">${esc(b.time)} ${esc(b.room.name)} · ${esc(b.name)}</div>`;
+    var evHtml=bks.slice(0,3).map(function(b){
+      var rm=rooms[b.room&&b.room.id]||{ev:'ov-ev-p'};
+      return '<div class="ov-ev '+rm.ev+'">'+esc(b.time)+' · '+esc((b.room&&b.room.name)||'')+'</div>';
     }).join('');
+    if(bks.length>3) evHtml+='<div class="ov-more">+'+(bks.length-3)+' more</div>';
 
-    if (bookings.length > 2) {
-      evHtml += `<div class="ov-more">+${bookings.length - 2} more</div>`;
-    }
-
-    calHtml += `
-      <div class="${cls}" onclick="ovShowDay('${iso}','${dateStr}')">
-        <div class="ov-day-num">${d}</div>
-        <div class="ov-day-events">${evHtml}</div>
-      </div>
-    `;
+    html+='<div class="'+cls+'" onclick="openPopup(\''+iso+'\',\''+dateStr+'\')">'
+      +'<div class="ov-day-num">'+d+'</div>'
+      +'<div class="ov-day-events">'+evHtml+'</div>'
+      +'</div>';
   }
 
-  document.getElementById('ov-cal-grid').innerHTML = calHtml;
+  document.getElementById('ov-cal-grid').innerHTML=html;
 }
 
-function ovShowDay(iso, dateStr){
-  var bookings = ovGetBookingsForDate(dateStr);
-  var box = document.getElementById('ov-detail');
+function openPopup(iso,dateStr){
+  currentDateStr=dateStr;
+  currentIso=iso;
+  document.getElementById('bk-popup-date').textContent=dateStr;
 
-  if (!bookings.length) {
-    box.innerHTML = `
-      <div class="ov-detail-title">
-        ${esc(dateStr)}
-        <button class="ov-detail-close" onclick="ovCloseDetail()">×</button>
-      </div>
-      <div class="ov-detail-empty">No bookings for this day.</div>
-    `;
-    box.classList.add('show');
-    return;
+  // reset form
+  document.getElementById('bk-room').value='';
+  document.getElementById('bk-time').value='';
+  document.getElementById('bk-name').value='';
+  document.getElementById('bk-note').value='';
+
+  // existing bookings
+  var bks=getBookingsForDate(dateStr);
+  var wrap=document.getElementById('bk-existing-wrap');
+  var list=document.getElementById('bk-existing-list');
+  if(bks.length){
+    wrap.style.display='block';
+    list.innerHTML=bks.map(function(b){
+      var rm=rooms[b.room&&b.room.id]||{dot:'#534AB7'};
+      return '<div class="bk-existing-item">'
+        +'<div class="bk-existing-dot" style="background:'+rm.dot+'"></div>'
+        +'<div class="bk-existing-info">'
+        +'<div class="bk-existing-room">'+esc((b.room&&b.room.name)||'')+'</div>'
+        +'<div class="bk-existing-meta">'+esc(b.time)+' · '+esc(b.name)+(b.note?' · '+esc(b.note):'')+'</div>'
+        +'</div>'
+        +'<button class="bk-existing-cancel" onclick="cancelBooking(\''+b.id+'\')" title="Cancel">✕</button>'
+        +'</div>';
+    }).join('');
+  } else {
+    wrap.style.display='none';
   }
 
-  var listHtml = bookings.map(function(b){
-    var rc = roomColors[b.room.id] || { dot:'#534AB7' };
-    return `
-      <div class="ov-detail-item">
-        <div class="ov-detail-dot" style="background:${rc.dot}"></div>
-        <div class="ov-detail-info">
-          <div class="ov-detail-room">${esc(b.room.name)}</div>
-          <div class="ov-detail-meta">${esc(b.time)} · ${esc(b.name)}${b.note ? ' · ' + esc(b.note) : ''}</div>
-        </div>
-      </div>
-    `;
-  }).join('');
-
-  box.innerHTML = `
-    <div class="ov-detail-title">
-      ${esc(dateStr)}
-      <button class="ov-detail-close" onclick="ovCloseDetail()">×</button>
-    </div>
-    <div class="ov-detail-list">${listHtml}</div>
-  `;
-  box.classList.add('show');
+  document.getElementById('bk-overlay').classList.add('show');
+  setTimeout(function(){document.getElementById('bk-time').focus();},200);
 }
 
-function ovCloseDetail(){
-  document.getElementById('ov-detail').classList.remove('show');
+function closePopup(){
+  document.getElementById('bk-overlay').classList.remove('show');
+  currentDateStr=null; currentIso=null;
 }
 
-function goStartBooking(){
-  window.location.href = 'room-booking.html';
+function handleOverlayClick(e){if(e.target===document.getElementById('bk-overlay'))closePopup();}
+document.addEventListener('keydown',function(e){if(e.key==='Escape')closePopup();});
+
+// enter key submits form
+document.addEventListener('keydown',function(e){
+  if(e.key==='Enter'&&document.getElementById('bk-overlay').classList.contains('show')){
+    submitBooking();
+  }
+});
+
+async function submitBooking(){
+  var roomId=parseInt(document.getElementById('bk-room').value);
+  var time=document.getElementById('bk-time').value.trim();
+  var name=document.getElementById('bk-name').value.trim();
+  var note=document.getElementById('bk-note').value.trim();
+
+  if(!roomId){showToast('Please select a room');return;}
+  if(!time){showToast('Please enter a time');return;}
+  if(!name){showToast('Please enter person in charge');return;}
+
+  var btn=document.getElementById('bk-submit-btn');
+  btn.disabled=true;btn.textContent='Saving…';
+
+  var rm=rooms[roomId];
+  var b={
+    id:Date.now()+'_'+Math.random().toString(36).slice(2,6),
+    room:{id:roomId,name:rm.name,icon:rm.icon,ri:'ri-p'},
+    date:currentDateStr,
+    time:time,
+    name:name,
+    note:note,
+    status:'confirmed'
+  };
+
+  try{
+    await sb.from('bookings').upsert({id:String(b.id),user_id:'local-user',payload:b},{onConflict:'id'});
+  }catch(e){console.warn('cloud save failed',e);}
+
+  allBookings.unshift(b);
+  saveLocal();
+
+  btn.disabled=false;btn.innerHTML='Confirm Booking →';
+  showToast('Booking confirmed! ✓');
+  closePopup();
+  ovRenderCalendar();
 }
 
-function goHome(){
-  window.history.back();
+async function cancelBooking(id){
+  allBookings=allBookings.filter(function(b){return String(b.id)!==String(id);});
+  saveLocal();
+  try{await sb.from('bookings').delete().eq('id',String(id));}catch(e){}
+  showToast('Booking cancelled');
+  if(currentDateStr) openPopup(currentIso,currentDateStr);
+  ovRenderCalendar();
 }
 
-// Bug Fix 4: start with cloud load (falls back to localStorage on failure)
-loadBookingsFromCloud();
+function showToast(msg){
+  var t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(function(){t.classList.remove('show');},2800);
+}
+
+ovRenderLegend();
+loadBookings();
 </script>
-
 </body>
 </html>
