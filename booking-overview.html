@@ -273,7 +273,83 @@ var selDateStr='';
 var selDateLabel='';
 var selRoom=null;
 var selTime='';
+function parseTimeRange(input){
+  if(!input) return null;
 
+  var s = String(input).trim().toLowerCase();
+  s = s.replace(/–/g, '-').replace(/—/g, '-');
+  s = s.replace(/\s+/g, '');
+
+  var parts = s.split('-');
+  if(parts.length !== 2) return null;
+
+  var start = parseSingleTime(parts[0]);
+  var end = parseSingleTime(parts[1]);
+
+  if(start === null || end === null) return null;
+
+  // allow overnight, e.g. 8pm-12am
+  if(end <= start){
+    end += 24 * 60;
+  }
+
+  return {
+    start: start,
+    end: end
+  };
+}
+
+function parseSingleTime(str){
+  var m = str.match(/^(\d{1,2})(?::(\d{2}))?(am|pm)?$/);
+  if(!m) return null;
+
+  var h = parseInt(m[1], 10);
+  var min = parseInt(m[2] || '0', 10);
+  var ap = m[3] || '';
+
+  if(min < 0 || min > 59) return null;
+
+  if(ap){
+    if(h < 1 || h > 12) return null;
+    if(ap === 'am' && h === 12) h = 0;
+    if(ap === 'pm' && h !== 12) h += 12;
+  } else {
+    if(h < 0 || h > 23) return null;
+  }
+
+  return h * 60 + min;
+}
+
+function isTimeOverlap(startA, endA, startB, endB){
+  return startA < endB && endA > startB;
+}
+
+function findRoomConflict(dateStr, roomId, timeInput){
+  var newRange = parseTimeRange(timeInput);
+  if(!newRange) return { invalid: true };
+
+  var sameRoomSameDay = allBookings.filter(function(b){
+    return b.date === dateStr && String(b.room && b.room.id) === String(roomId);
+  });
+
+  for(var i = 0; i < sameRoomSameDay.length; i++){
+    var existing = parseTimeRange(sameRoomSameDay[i].time);
+    if(!existing) continue;
+
+    if(isTimeOverlap(newRange.start, newRange.end, existing.start, existing.end)){
+      return {
+        invalid: false,
+        conflict: true,
+        booking: sameRoomSameDay[i]
+      };
+    }
+  }
+
+  return {
+    invalid: false,
+    conflict: false
+  };
+}
 /* ── PAGES ── */
 function showPage(id){
   document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
@@ -467,31 +543,60 @@ function confirmTime(){
 
 /* ── SUBMIT BOOKING ── */
 async function submitBooking(){
-  var name=document.getElementById('inp-name').value.trim();
-  var note=document.getElementById('inp-note').value.trim();
-  if(!name){showToast('Please enter person in charge');return;}
+  var name = document.getElementById('inp-name').value.trim();
+  var note = document.getElementById('inp-note').value.trim();
+  if(!name){
+    showToast('Please enter person in charge');
+    return;
+  }
 
-  var btn=document.getElementById('btn-confirm');
-  btn.disabled=true;btn.textContent='Saving…';
+  var roomId = Object.keys(rooms).find(function(k){
+    return rooms[k] === selRoom;
+  });
 
-  var b={
-    id:Date.now()+'_'+Math.random().toString(36).slice(2,6),
-    room:{id:Object.keys(rooms).find(function(k){return rooms[k]===selRoom;}),name:selRoom.name,icon:selRoom.icon},
-    date:selDateStr,
-    time:selTime,
-    name:name,
-    note:note,
-    status:'confirmed'
+  var check = findRoomConflict(selDateStr, roomId, selTime);
+  if(check.invalid){
+    showToast('Invalid time format');
+    return;
+  }
+  if(check.conflict){
+    showToast('This room is already booked for that time');
+    showPage('time');
+    return;
+  }
+
+  var btn = document.getElementById('btn-confirm');
+  btn.disabled = true;
+  btn.textContent = 'Saving…';
+
+  var b = {
+    id: Date.now() + '_' + Math.random().toString(36).slice(2,6),
+    room: {
+      id: roomId,
+      name: selRoom.name,
+      icon: selRoom.icon
+    },
+    date: selDateStr,
+    time: selTime,
+    name: name,
+    note: note,
+    status: 'confirmed'
   };
 
   try{
-    await sb.from('bookings').upsert({id:String(b.id),user_id:'local-user',payload:b},{onConflict:'id'});
-  }catch(e){console.warn('cloud save failed',e);}
+    await sb.from('bookings').upsert(
+      {id:String(b.id), user_id:'local-user', payload:b},
+      {onConflict:'id'}
+    );
+  }catch(e){
+    console.warn('cloud save failed', e);
+  }
 
   allBookings.unshift(b);
   saveLocal();
 
-  btn.disabled=false;btn.textContent='Confirm Booking →';
+  btn.disabled = false;
+  btn.textContent = 'Confirm Booking →';
   showToast('Booking confirmed! ✓');
   showPage('overview');
   renderCalendar();
