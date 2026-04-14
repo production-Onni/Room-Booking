@@ -1097,10 +1097,12 @@ function submitBooking(){
 }
 function doSubmit(name,note,dateStr,btn){
   btn.textContent='Confirming...';
-  var b={id:Date.now(),room:st.room,date:dateStr,time:st.time,name:name,note:note,status:'pending'};
+  var b={id:Date.now()+'_'+Math.random().toString(36).slice(2,7),room:st.room,date:dateStr,time:st.time,name:name,note:note,status:'pending'};
   var startHourNum=parseInt(st.time.split(':')[0]); var endHourNum=startHourNum+2;
+  // Bug Fix 6: cap at 23:59 to avoid invalid ISO "T24:00:00"
+  var endHourCapped = endHourNum >= 24 ? 23 : endHourNum;
   var yr=st.date.getFullYear(); var mo=String(st.date.getMonth()+1).padStart(2,'0'); var dy=String(st.date.getDate()).padStart(2,'0');
-  var startISO=yr+'-'+mo+'-'+dy+'T'+String(startHourNum).padStart(2,'0')+':00:00'; var endISO=yr+'-'+mo+'-'+dy+'T'+String(endHourNum).padStart(2,'0')+':00:00';
+  var startISO=yr+'-'+mo+'-'+dy+'T'+String(startHourNum).padStart(2,'0')+':00:00'; var endISO=yr+'-'+mo+'-'+dy+'T'+String(endHourCapped).padStart(2,'0')+':59:59';
   fetch('https://script.google.com/macros/s/AKfycbwrWP8Nr6M9pKXT_6OAtnsZ2NP7lNuJb6NUF1BhLmlaCy_S9Kki2aX05bf_NAp-OidoQA/exec?room_name='+encodeURIComponent(b.room.name)+'&date='+encodeURIComponent(b.date)+'&time='+encodeURIComponent(b.time)+'&start_datetime='+encodeURIComponent(startISO)+'&end_datetime='+encodeURIComponent(endISO)+'&person_name='+encodeURIComponent(b.name),{method:'GET',mode:'no-cors'}).catch(function(err){ console.warn(err); });
   showToast('Booking confirmed! ✓'); finalise(b);
 }
@@ -1137,36 +1139,27 @@ async function cloudDeleteBooking(id){
   if(error) throw error;
 }
 
+// Bug Fix 1: removed duplicate unshift — original finalise already calls unshift+save.
+// We only wrap to add cloud sync on top.
 const _origFinalise = finalise;
 finalise = async function(b){
+  // Call the original synchronous finalise (handles unshift, save, renderBookings, goTo)
+  _origFinalise(b);
+
+  // Then sync to cloud
   try{
-    st.bookings.unshift(b);
-    document.getElementById('inp-name').value = '';
-    document.getElementById('inp-note').value = '';
-    st.room = null;
-    st.date = null;
-    st.time = null;
-
-    var btn = document.getElementById('btn-sub');
-    btn.disabled = false;
-    btn.innerHTML = 'Confirm Booking &#8594;';
-
-    updCount();
-    renderBookings();
-    if(typeof renderMB === 'function') renderMB();
-    goTo(1);
-
     await cloudInsertBooking(b);
 
     setTimeout(function(){
       b.status = 'confirmed';
       renderBookings();
       if(typeof renderMB === 'function') renderMB();
+      save();
       cloudInsertBooking(b);
     }, 3000);
   }catch(err){
     console.error(err);
-    showToast('Booking save failed');
+    showToast('Booking save failed (cloud)');
   }
 };
 
@@ -1400,7 +1393,9 @@ function renderMB(){
       </div>
     `;
   }).join('');
-}function cancelFromMB(id){ st.bookings=st.bookings.filter(function(b){ return b.id!==id; }); save(); updCount(); renderBookings(); renderMB(); showToast('Booking cancelled'); }
+}
+// Bug Fix 2: delegate to cancelBooking so Supabase deletion also runs
+function cancelFromMB(id){ cancelBooking(id).then(function(){ renderMB(); }).catch(function(){ renderMB(); }); }
 var leaveRecords = [];
 try { var _lr = localStorage.getItem('omLeaveRecords'); if(_lr) leaveRecords = JSON.parse(_lr); } catch(e){}
 function saveLeaveRecs(){ try{ localStorage.setItem('omLeaveRecords', JSON.stringify(leaveRecords)); }catch(e){} }
